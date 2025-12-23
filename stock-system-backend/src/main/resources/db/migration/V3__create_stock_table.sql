@@ -1,0 +1,6 @@
+CREATE TABLE stocks (
+    id BIGSERIAL PRIMARY KEY,
+    symbol VARCHAR(50) NOT NULL,
+    name VARCHAR(100),
+    price DOUBLE PRECISION
+);

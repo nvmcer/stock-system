@@ -1,0 +1,2 @@
+ALTER TABLE portfolio
+ADD COLUMN realized_pnl NUMERIC(18,2) NOT NULL DEFAULT 0;

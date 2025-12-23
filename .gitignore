@@ -1,0 +1,65 @@
+# ============================
+# Global ignores (OS / IDE)
+# ============================
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.swp
+*.swo
+
+# IntelliJ / VSCode
+.idea/
+.vscode/
+*.iml
+
+# ============================
+# Java / Spring Boot (backend)
+# ============================
+backend/target/
+backend/.classpath
+backend/.project
+backend/.settings/
+backend/.idea/
+backend/*.jar
+
+# Maven / Gradle
+backend/.mvn/
+backend/mvnw
+backend/mvnw.cmd
+backend/build/
+backend/.gradle/
+
+# ============================
+# Node / React (frontend)
+# ============================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+frontend/.cache/
+frontend/npm-debug.log
+frontend/yarn-error.log
+
+# ============================
+# Python / FastAPI
+# ============================
+fastapi/__pycache__/
+fastapi/*.pyc
+fastapi/.venv/
+fastapi/venv/
+fastapi/.pytest_cache/
+fastapi/.mypy_cache/
+
+# ============================
+# Docker
+# ============================
+**/.dockerignore
+**/Dockerfile~
+
+# ============================
+# Environment files
+# ============================
+*.env
+*.env.local
+*.env.development
+*.env.production
