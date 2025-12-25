@@ -10,38 +10,31 @@ A fully containerized multi-service stock management system built with:
 This project is designed for clean architecture, easy onboarding, and production-ready deployment.
 
 🏗️ System Architecture
-┌──────────────────────────┐
-│        Frontend          │
-│  Vite Dev Server (5173)  │
-│  → Calls Backend API     │
-└─────────────┬────────────┘
-              │
-              ▼
-┌──────────────────────────┐
-│        Backend           │
-│     Spring Boot (8080)   │
-│  → Business Logic        │
-│  → Calls FastAPI         │
-│  → Stores data in DB     │
-└─────────────┬────────────┘
-              │
-              ▼
-┌──────────────────────────┐
-│     Market Data API      │
-│       FastAPI (8001)     │
-│  → Fetches external data │
-│  → Returns to Backend    │
-│  → No DB access          │
-└──────────────────────────┘
+flowchart TD
 
-              │
-              ▼
-┌──────────────────────────┐
-│        PostgreSQL        │
-│        Database          │
-│  ← Only accessed by      │
-│     Spring Boot Backend  │
-└──────────────────────────┘
+    subgraph Frontend["Frontend (Vite Dev Server 5173)"]
+        FE1["Calls Backend API"]
+    end
+
+    subgraph Backend["Backend (Spring Boot 8080)"]
+        BE1["Business Logic"]
+        BE2["Calls FastAPI"]
+        BE3["Stores data in DB"]
+    end
+
+    subgraph FastAPI["Market Data API (FastAPI 8001)"]
+        FA1["Fetches external data"]
+        FA2["Returns data to Backend"]
+        FA3["No DB access"]
+    end
+
+    subgraph DB["PostgreSQL Database"]
+        DB1["Accessed only by Spring Boot Backend"]
+    end
+
+    Frontend --> Backend
+    Backend --> FastAPI
+    Backend --> DB
 
 📁 Project Structure
 stock-system/
