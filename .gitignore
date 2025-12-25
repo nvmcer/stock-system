@@ -16,39 +16,38 @@ Thumbs.db
 # ============================
 # Java / Spring Boot (backend)
 # ============================
-backend/target/
-backend/.classpath
-backend/.project
-backend/.settings/
-backend/.idea/
-backend/*.jar
-
+stock-system-backend/target/
+stock-system-backend/.classpath
+stock-system-backend/.project
+stock-system-backend/.settings/
+stock-system-backend/.idea/
+stock-system-backend/*.jar
 # Maven / Gradle
-backend/.mvn/
-backend/mvnw
-backend/mvnw.cmd
-backend/build/
+stock-system-backend/.mvn/
+stock-system-backend/mvnw
+stock-system-backend/mvnw.cmd
+stock-system-backend/build/
 backend/.gradle/
 
 # ============================
 # Node / React (frontend)
 # ============================
-frontend/node_modules/
-frontend/dist/
-frontend/.vite/
-frontend/.cache/
-frontend/npm-debug.log
-frontend/yarn-error.log
+stock-system-frontend/node_modules/
+stock-system-frontend/dist/
+stock-system-frontend/.vite/
+stock-system-frontend/.cache/
+stock-system-frontend/npm-debug.log
+stock-system-frontend/yarn-error.log
 
 # ============================
 # Python / FastAPI
 # ============================
-fastapi/__pycache__/
-fastapi/*.pyc
-fastapi/.venv/
-fastapi/venv/
-fastapi/.pytest_cache/
-fastapi/.mypy_cache/
+stock-system-marketdata/app/__pycache__/
+stock-system-marketdata/app/*.pyc
+stock-system-marketdata/app/.venv/
+stock-system-marketdata/app/venv/
+stock-system-marketdata/app/.pytest_cache/
+stock-system-marketdata/app/.mypy_cache/
 
 # ============================
 # Docker

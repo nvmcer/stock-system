@@ -30,7 +30,7 @@ public class PriceUpdateService {
                 .map(Stock::getSymbol)
                 .collect(Collectors.joining(","));
 
-        String url = "http://localhost:8000/prices?symbols=" + symbols;
+        String url = "http://fastapi:8001/prices?symbols=" + symbols;
 
         Map<String, Double> prices = restTemplate.getForObject(url, Map.class);
         System.out.println("Prices from FastAPI: " + prices);

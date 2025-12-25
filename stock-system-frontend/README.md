@@ -1,75 +1,114 @@
-# React + TypeScript + Vite
+📦 Stock System Frontend — Vite Application
+🧭 Overview
+This module is the frontend application of the Stock System.
+It provides:
+- A modern UI built with Vite
+- Integration with the Spring Boot backend
+- Integration with the FastAPI market data service (via backend)
+- Hot-reload development environment
+- Production-ready static build
+The frontend does not access the database directly.
+All data flows through the backend.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+🏗️ Architecture
+┌──────────────────────────┐
+│        Frontend          │
+│  Vite Dev Server (5173)  │
+│  → Calls Backend API     │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│        Backend           │
+│     Spring Boot (8080)   │
+│  → Business Logic        │
+│  → Calls FastAPI         │
+│  → Stores data in DB     │
+└─────────────┬────────────┘
+              │
+              ▼
+┌──────────────────────────┐
+│     Market Data API      │
+│       FastAPI (8001)     │
+│  → Fetches external data │
+│  → Returns to Backend    │
+└──────────────────────────┘
 
-Currently, two official plugins are available:
+📁 Project Structure
+stock-system-frontend/
+│
+├── src/                    # Frontend source code
+│   ├── components/
+│   ├── pages/
+│   ├── api/
+│   └── main.js / main.ts
+│
+├── public/                 # Static assets
+├── .env.example            # Environment variable template
+├── package.json
+├── vite.config.js
+└── README.md
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+🚀 Development
+Start Dev Server
+If running inside Docker Compose:
+make dev
 
-## React Compiler
+Or run locally:
+npm install
+npm run dev
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+Frontend will start at:
+http://localhost:3001
 
-Note: This will impact Vite dev & build performances.
+(Proxying to Vite’s internal port 5173)
 
-## Expanding the ESLint configuration
+🔧 Environment Variables
+The frontend uses Vite’s environment system.
+.env.example
+VITE_MARKETDATA_API_URL=http://localhost:8001
+VITE_API_BASE=http://localhost:8080
+VITE_APP_ENV=development
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Developers copy:
+cp .env.example .env
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+🏭 Production Build
+Build static files:
+npm run build
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+Preview:
+npm run preview
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+In production Docker mode, the frontend is built and served by the backend or Nginx (depending on your setup).
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+📡 API Integration
+Backend API
+All business logic and DB operations go through:
+VITE_BACKEND_API_URL
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Example:
+const res = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/stocks`);
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+Market Data API
+Frontend does not call FastAPI directly in your architecture.
+Backend handles:
+- Fetching market data
+- Processing
+- Storing
+- Returning unified responses
+
+🧪 Testing
+(If you add tests later)
+npm run test
+
+🐳 Docker
+Included in docker-compose.dev.yml:
+frontend:
+  build: ./stock-system-frontend
+  container_name: stock-system-frontend-dev
+  ports:
+    - "3001:5173"
+  volumes:
+    - ./stock-system-frontend:/app
+  command: npm run dev -- --host

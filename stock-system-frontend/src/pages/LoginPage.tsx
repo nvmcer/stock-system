@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 interface LoginResponse {
   token: string;
@@ -22,7 +22,7 @@ function LoginPage() {
     }
 
     try {
-      const res = await axios.post<LoginResponse>("/api/auth/login", { username, password });
+      const res = await api.post<LoginResponse>("/api/auth/login", { username, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("userId", String(res.data.userId));

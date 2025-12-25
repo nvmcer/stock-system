@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 interface Stock {
   id: number;
@@ -16,7 +16,7 @@ function AdminDashboard() {
   // 銘柄リスト
   useEffect(() => {
     const token = localStorage.getItem("token");
-    axios.get<Stock[]>("/api/stocks", {
+    api.get<Stock[]>("/api/stocks", {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => setStocks(res.data))
@@ -27,7 +27,7 @@ function AdminDashboard() {
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("token");
     try {
-      await axios.delete(`/api/stocks/${id}`, {
+      await api.delete(`/api/stocks/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setStocks(stocks.filter(stock => stock.id !== id));
@@ -36,20 +36,22 @@ function AdminDashboard() {
     }
   };
 
+  // 最新の価格に更新
   async function updatePrices() {
     const token = localStorage.getItem("token");
 
-    const res = await fetch("/api/stocks/update-prices", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json"
+    const res = await api.post(
+      "/api/stocks/update-prices",
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
 
-  const data = await res.json();
-  alert(data.message);
-}
+    alert(res.data.message);
+  }
 
   return (
     <div>

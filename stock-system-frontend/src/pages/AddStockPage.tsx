@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 function AddStockPage() {
   const [symbol, setSymbol] = useState("");
@@ -11,7 +11,7 @@ function AddStockPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await axios.post("/api/stocks", { symbol, name, price }, {
+    await api.post("/api/stocks", { symbol, name, price }, {
       headers: { Authorization: `Bearer ${token}` }
     });
     navigate("/admin/dashboard");

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 
 function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
@@ -13,7 +13,7 @@ function PortfolioPage() {
   useEffect(() => {
     const fetchPortfolio = async () => {
       try {
-        const res = await axios.get(`/api/portfolio?userId=${userId}`, {
+        const res = await api.get(`/api/portfolio?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setPortfolio(res.data);

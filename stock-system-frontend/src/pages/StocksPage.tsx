@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 
 function StocksPage() {
   const [stocks, setStocks] = useState<any[]>([]);
@@ -11,7 +11,7 @@ function StocksPage() {
   useEffect(() => {
     const fetchStocks = async () => {
       try {
-        const res = await axios.get("/api/stocks", {
+        const res = await api.get("/api/stocks", {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStocks(res.data);
@@ -24,7 +24,7 @@ function StocksPage() {
 
   const handleBuy = async (symbol: string) => {
     try {
-      await axios.post(`/api/trades/buy?userId=${userId}`,
+      await api.post(`/api/trades/buy?userId=${userId}`,
         { symbol, quantity: quantities[symbol] || 0, price: prices[symbol] || 0 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -36,7 +36,7 @@ function StocksPage() {
 
   const handleSell = async (symbol: string) => {
     try {
-      await axios.post(`/api/trades/sell?userId=${userId}`,
+      await api.post(`/api/trades/sell?userId=${userId}`,
         { symbol, quantity: quantities[symbol] || 0, price: prices[symbol] || 0 },
         { headers: { Authorization: `Bearer ${token}` } }
       );

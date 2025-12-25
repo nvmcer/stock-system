@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { useNavigate, useParams } from "react-router-dom";
+import api from "../services/api";
 
 function EditStockPage() {
   const { id } = useParams<{ id: string }>();
@@ -11,7 +11,7 @@ function EditStockPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
-    axios.get(`/api/stocks/${id}`, {
+    api.get(`/api/stocks/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
@@ -25,7 +25,7 @@ function EditStockPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await axios.put(`/api/stocks/${id}`, { symbol, name, price }, {
+    await api.put(`/api/stocks/${id}`, { symbol, name, price }, {
       headers: { Authorization: `Bearer ${token}` }
     });
     navigate("/admin/dashboard");
