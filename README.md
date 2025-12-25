@@ -10,6 +10,8 @@ A fully containerized multi-service stock management system built with:
 This project is designed for clean architecture, easy onboarding, and production-ready deployment.
 
 🏗️ System Architecture
+
+```mermaid
 flowchart TD
 
     subgraph Frontend["Frontend (Vite Dev Server 5173)"]
@@ -35,8 +37,10 @@ flowchart TD
     Frontend --> Backend
     Backend --> FastAPI
     Backend --> DB
+```
 
 📁 Project Structure
+```
 stock-system/
 │
 ├── stock-system-frontend/       # Vite frontend
@@ -61,6 +65,7 @@ stock-system/
 ├── docker-compose.prod.yml      # Production environment
 ├── Makefile                     # Automation commands
 └── README.md
+```
 
 🚀 Development Environment
 Prerequisites
