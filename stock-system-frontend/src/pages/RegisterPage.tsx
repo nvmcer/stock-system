@@ -2,14 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-interface LoginResponse {
-  token: string;
-  role: string;
-  userId: string;
-  username: string;
-}
-
-function LoginPage() {
+function RegisterPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const navigate = useNavigate();
@@ -22,7 +15,9 @@ function LoginPage() {
     }
 
     try {
-      const res = await api.post<LoginResponse>("/api/auth/login", { username, password });
+      await api.post("/api/auth/register", { username, password });
+      // Auto-login after successful registration
+      const res = await api.post("/api/auth/login", { username, password });
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("userId", String(res.data.userId));
@@ -33,14 +28,14 @@ function LoginPage() {
         navigate("/user/dashboard");
       }
     } catch (err: any) {
-      alert("Login failed: " + (err.response?.data?.message || err.message));
+      alert("Registration failed: " + (err.response?.data?.message || err.message));
     }
   };
 
   return (
     <div className="login-page">
       <div className="card login-card">
-        <h1>Login</h1>
+        <h1>Register</h1>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <input
             type="text"
@@ -58,19 +53,11 @@ function LoginPage() {
             style={{ boxSizing: 'border-box' }}
           />
 
-          <button type="submit" className="primary" style={{ alignSelf: 'center', marginTop: '8px' }}>Login</button>
-          <button
-            type="button"
-            className="secondary"
-            style={{ alignSelf: 'center', marginTop: '8px' }}
-            onClick={() => navigate('/register')}
-          >
-            Register
-          </button>
+          <button type="submit" className="primary" style={{ alignSelf: 'center', marginTop: '8px' }}>Register</button>
         </form>
       </div>
     </div>
   );
 }
 
-export default LoginPage;
+export default RegisterPage;
