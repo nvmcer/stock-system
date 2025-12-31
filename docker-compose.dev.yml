@@ -41,6 +41,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stockdb
       SPRING_DATASOURCE_USERNAME: stockuser
       SPRING_DATASOURCE_PASSWORD: stockpassword
+      SPRING_PROFILES_ACTIVE: dev
     depends_on:
       - postgres
 

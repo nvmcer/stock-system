@@ -7,8 +7,8 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
+import com.external.marketdata.MarketDataClient;
 import com.stock.entity.Stock;
 import com.stock.repository.StockRepository;
 
@@ -18,8 +18,11 @@ public class PriceUpdateService {
     @Autowired
     private StockRepository stockRepository;
 
-    @Autowired
-    private RestTemplate restTemplate;
+    private final MarketDataClient marketDataClient;
+
+    public PriceUpdateService(MarketDataClient marketDataClient) {
+        this.marketDataClient = marketDataClient;
+    }
 
     public void updateAllPrices() {
 
@@ -30,9 +33,8 @@ public class PriceUpdateService {
                 .map(Stock::getSymbol)
                 .collect(Collectors.joining(","));
 
-        String url = "http://fastapi:8001/prices?symbols=" + symbols;
+        Map<String, Double> prices = marketDataClient.getPrices(symbols);
 
-        Map<String, Double> prices = restTemplate.getForObject(url, Map.class);
         System.out.println("Prices from FastAPI: " + prices);
 
         int successCount = 0;
@@ -49,10 +51,9 @@ public class PriceUpdateService {
                 stock.setPrice(BigDecimal.valueOf(newPrice));
                 successCount++;
 
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 failCount++;
                 System.err.println("❌ Failed to update: " + stock.getSymbol());
-                e.printStackTrace();
             }
         }
 
