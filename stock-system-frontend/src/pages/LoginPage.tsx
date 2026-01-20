@@ -2,11 +2,12 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+// API response format from login endpoint
 interface LoginResponse {
-  token: string;
-  role: string;
-  userId: string;
-  username: string;
+  token: string;        // JWT token for authentication
+  role: string;         // User role (ROLE_ADMIN or ROLE_USER)
+  userId: string;       // User ID
+  username: string;     // Username
 }
 
 function LoginPage() {
@@ -14,6 +15,7 @@ function LoginPage() {
   const [password, setPassword] = useState<string>("");
   const navigate = useNavigate();
 
+  // Handle login form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
@@ -22,11 +24,16 @@ function LoginPage() {
     }
 
     try {
+      // Send login request to backend
       const res = await api.post<LoginResponse>("/api/auth/login", { username, password });
+      
+      // Store authentication info in localStorage for future requests
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("userId", String(res.data.userId));
       localStorage.setItem("username", res.data.username);
+      
+      // Redirect to appropriate dashboard based on user role
       if (res.data.role === "ROLE_ADMIN") {
         navigate("/admin/dashboard");
       } else {

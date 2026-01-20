@@ -4,6 +4,7 @@ import RegisterPage from "./pages/RegisterPage";
 import AdminDashboard from "./pages/AdminDashboard";
 import AddStockPage from "./pages/AddStockPage";
 import EditStockPage from "./pages/EditStockPage";
+import ManageUsersPage from "./pages/ManageUsersPage";
 import UserDashboard from "./pages/UserDashboard";
 import PortfolioPage from "./pages/PortfolioPage";
 import StocksPage from "./pages/StocksPage";
@@ -14,9 +15,14 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Redirect root to login */}
         <Route path="/" element={<Navigate to="/login" />} />
+        
+        {/* Public pages */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        
+        {/* Admin pages - requires Layout wrapper for navigation */}
         <Route
           path="/admin/dashboard"
           element={
@@ -41,6 +47,16 @@ function App() {
             </Layout>
           }
         />
+        <Route
+          path="/admin/users"
+          element={
+            <Layout>
+              <ManageUsersPage />
+            </Layout>
+          }
+        />
+        
+        {/* User pages - requires Layout wrapper for navigation */}
         <Route
           path="/user/dashboard"
           element={

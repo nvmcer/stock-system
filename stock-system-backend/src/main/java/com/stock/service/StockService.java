@@ -18,6 +18,7 @@ public class StockService {
     @Autowired
     private StockRepository stockRepository;
 
+    // Retrieve all stocks from database
     public List<StockResponseDto> findAll() { 
       return stockRepository.findAll()
         .stream()
@@ -25,24 +26,28 @@ public class StockService {
         .collect(Collectors.toList());
     }
 
+    // Find stock by ID
     public StockResponseDto findById(Long id) { 
       Stock stock = stockRepository.findById(id).
         orElseThrow(() -> new EntityNotFoundException("Stock not found: " + id));
       return toResponseDto(stock); 
     }
 
+    // Find stock by ticker symbol
     public StockResponseDto findBySymbol(String symbol) {
       Stock stock = stockRepository.findBySymbol(symbol)
               .orElseThrow(() -> new EntityNotFoundException("Stock not found: " + symbol));
       return toResponseDto(stock);
     }
     
+    // Create a new stock
     public StockResponseDto create(StockRequestDto request) {
       Stock stock = toEntity(request);
       Stock saved = stockRepository.save(stock);
       return toResponseDto(saved);
     }
 
+    // Update existing stock
     public StockResponseDto update(Long id, StockRequestDto request) {
       Stock stock = stockRepository.findById(id)
               .orElseThrow(() -> new EntityNotFoundException("Stock not found: " + id));
@@ -54,6 +59,7 @@ public class StockService {
       return toResponseDto(stockRepository.save(stock));
     }
 
+    // Delete stock by ID
     public void delete(Long id) {
       if (!stockRepository.existsById(id)) {
         throw new EntityNotFoundException("Stock not found: " + id);
@@ -61,6 +67,7 @@ public class StockService {
       stockRepository.deleteById(id); 
     }
 
+    // Convert DTO to entity
     private Stock toEntity(StockRequestDto dto) {
       Stock stock = new Stock();
       stock.setSymbol(dto.getSymbol());
@@ -69,6 +76,7 @@ public class StockService {
       return stock;
     }
 
+    // Convert entity to DTO for API response
     private StockResponseDto toResponseDto(Stock stock) {
       StockResponseDto dto = new StockResponseDto();
       dto.setId(stock.getId());

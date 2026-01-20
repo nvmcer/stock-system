@@ -7,6 +7,7 @@ function RegisterPage() {
   const [password, setPassword] = useState<string>("");
   const navigate = useNavigate();
 
+  // Handle registration form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
@@ -15,13 +16,19 @@ function RegisterPage() {
     }
 
     try {
+      // Create new user account
       await api.post("/api/auth/register", { username, password });
+      
       // Auto-login after successful registration
       const res = await api.post("/api/auth/login", { username, password });
+      
+      // Store authentication info
       localStorage.setItem("token", res.data.token);
       localStorage.setItem("role", res.data.role);
       localStorage.setItem("userId", String(res.data.userId));
       localStorage.setItem("username", res.data.username);
+      
+      // Redirect to appropriate dashboard
       if (res.data.role === "ROLE_ADMIN") {
         navigate("/admin/dashboard");
       } else {

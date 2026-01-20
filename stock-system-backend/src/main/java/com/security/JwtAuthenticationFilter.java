@@ -28,23 +28,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
+    // Intercept every request to validate JWT token from Authorization header
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,
                                     FilterChain filterChain)
             throws ServletException, IOException, java.io.IOException {
 
+        // Extract Bearer token from Authorization header
         String authHeader = request.getHeader("Authorization");
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             String token = authHeader.substring(7);
             try {
+                // Extract username and role from token
                 String username = jwtUtil.extractUsername(token);
                 String role = jwtUtil.extractRole(token);
 
+                // Set authentication if token is valid and user is not already authenticated
                 if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
                     UserDetails userDetails = userDetailsService.loadUserByUsername(username);
                     if (jwtUtil.validateToken(token, userDetails.getUsername())) {
+                        // Create authentication token with user details and role
                         UsernamePasswordAuthenticationToken authToken =
                                 new UsernamePasswordAuthenticationToken(
                                         userDetails, null, List.of(new SimpleGrantedAuthority(role)));
@@ -53,6 +58,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     }
                 }
             } catch (Exception e) {
+                // Log JWT validation errors without breaking the request
                 System.out.println("JWT validation error: " + e.getMessage());
             }
         }

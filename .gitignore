@@ -48,6 +48,8 @@ stock-system-marketdata/app/.venv/
 stock-system-marketdata/app/venv/
 stock-system-marketdata/app/.pytest_cache/
 stock-system-marketdata/app/.mypy_cache/
+stock-system-marketdata/function.zip
+stock-system-marketdata/.env
 
 # ============================
 # Docker
@@ -62,3 +64,12 @@ stock-system-marketdata/app/.mypy_cache/
 *.env.local
 *.env.development
 *.env.production
+
+# ============================
+# Terraform
+# ============================
+*.tfstate
+*.tfstate.backup
+*.exe
+*.tfvars
+.terraform/

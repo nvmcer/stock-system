@@ -17,9 +17,11 @@ public class DefaultAdminInitializer implements ApplicationRunner{
         this.passwordEncoder = passwordEncoder;
     }
 
+    // Create default admin user if no users exist in the database
     @Override
     public void run(org.springframework.boot.ApplicationArguments args) throws Exception {
         if (userRepository.count() == 0) {
+            // Create admin user with default credentials
             var adminUser = new com.user.entity.User();
             adminUser.setUsername("admin");
             adminUser.setPasswordHash(passwordEncoder.encode("admin123"));

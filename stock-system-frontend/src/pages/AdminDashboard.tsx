@@ -13,7 +13,7 @@ function AdminDashboard() {
   const [stocks, setStocks] = useState<Stock[]>([]);
   const navigate = useNavigate();
 
-  // 銘柄リスト
+  // List of stocks
   useEffect(() => {
     const token = localStorage.getItem("token");
     api.get<Stock[]>("/api/stocks", {
@@ -23,7 +23,7 @@ function AdminDashboard() {
     .catch(err => console.error("Failed to fetch stocks:", err));
   }, []);
 
-  // 名柄削除
+  // Delete stock
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("token");
     try {
@@ -36,29 +36,47 @@ function AdminDashboard() {
     }
   };
 
-  // 最新の価格に更新
+  // Update prices to latest
   async function updatePrices() {
     const token = localStorage.getItem("token");
 
-    const res = await api.post(
-      "/api/stocks/update-prices",
-      {},
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
+    try {
+      // Call backend to update prices from market data service
+      const res = await api.post(
+        "/api/stocks/update-prices",
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
 
-    alert(res.data.message);
+      alert(res.data.message);
+      
+      // Fetch updated stock prices from server
+      const updatedStocks = await api.get<Stock[]>("/api/stocks", {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      
+      // Update UI with new prices
+      setStocks(updatedStocks.data);
+      alert("Stock prices refreshed!");
+    } catch (err: any) {
+      console.error("Price update failed:", err);
+      alert("Failed to update prices: " + (err.response?.data?.message || err.message));
+    }
   }
 
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <h1>Admin Dashboard</h1>
-        <button className="primary" onClick={updatePrices}>Update Prices</button>
-        <button className="primary" onClick={() => navigate("/admin/add")}>+ Add Stock</button>
+        <div style={{ display: 'flex', gap: '8px' }}>
+          <button className="primary" onClick={() => navigate("/admin/users")}>👥 Manage Users</button>
+          <button className="primary" onClick={updatePrices}>Update Prices</button>
+          <button className="primary" onClick={() => navigate("/admin/add")}>+ Add Stock</button>
+        </div>
       </div>
 
       <div className="card" style={{ marginTop: '20px' }}>

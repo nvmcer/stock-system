@@ -21,6 +21,7 @@ public class JwtUtil {
   
   private final Key key = Keys.hmacShaKeyFor(SECRET_KEY.getBytes());
 
+  // Generate a JWT token with username and role claims
   public String generateToken(String username, String role) {
     Map<String, Object> claims = new HashMap<>();
     claims.put("role", role); 
@@ -33,11 +34,13 @@ public class JwtUtil {
         .compact();
   }
 
+  // Validate JWT token by checking username and expiration
   public Boolean validateToken(String token, String username) {
     final String extractedUsername = extractUsername(token);
     return (extractedUsername.equals(username) && !isTokenExpired(token));
   }
 
+  // Check if token has expired
   private boolean isTokenExpired(String token) {
     Date expiration = Jwts.parserBuilder()
         .setSigningKey(key)
@@ -49,19 +52,23 @@ public class JwtUtil {
     return expiration.before(new Date());
   }
 
+  // Extract username from JWT token
   public String extractUsername(String token) {
     return extractClaim(token, Claims::getSubject);
 }
 
+  // Extract user role from JWT token
   public String extractRole(String token) {
     return extractClaim(token, claims -> claims.get("role", String.class));
   }
 
+  // Generic method to extract any claim from token
   public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
       final Claims claims = extractAllClaims(token);
       return claimsResolver.apply(claims);
   }
 
+  // Parse and extract all claims from JWT token
   private Claims extractAllClaims(String token) {
       return Jwts.parserBuilder()
              .setSigningKey(key)

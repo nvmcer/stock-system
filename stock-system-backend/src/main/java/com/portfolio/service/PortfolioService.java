@@ -25,41 +25,77 @@ public class PortfolioService {
         this.portfolioRepository = portfolioRepository;
     }
 
+    // Get user's portfolio with profit/loss calculations (only active holdings)
     public List<PortfolioResponseDto> getUserPortfolio(Long userId) {
         List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
 
-    return portfolios.stream().map(p -> {
+        return portfolios.stream()
+            // Only show active holdings (quantity > 0)
+            .filter(p -> p.getQuantity() > 0)
+            .map(p -> {
 
-        // price from latest trade
-        BigDecimal currentPrice = stockRepository.findById(p.getStock().getId())
-        .map(Stock::getPrice)
-        .orElse(BigDecimal.ZERO);
+            // Get current price from latest stock price
+            BigDecimal currentPrice = stockRepository.findById(p.getStock().getId())
+            .map(Stock::getPrice)
+            .orElse(BigDecimal.ZERO);
 
-        BigDecimal qty = BigDecimal.valueOf(p.getQuantity());
+            BigDecimal qty = BigDecimal.valueOf(p.getQuantity());
 
-        // unrealized profit/loss  = (currentPrice - avgCost) × qtyuantity
-        BigDecimal unrealized = currentPrice
-        .subtract(p.getAvgCost())
-        .multiply(qty)
-        .setScale(2, RoundingMode.HALF_UP);
+            // Calculate unrealized profit/loss = (currentPrice - avgCost) × quantity
+            BigDecimal unrealized = currentPrice
+            .subtract(p.getAvgCost())
+            .multiply(qty)
+            .setScale(2, RoundingMode.HALF_UP);
 
-        // realized profit/loss sum from trades
-        BigDecimal realized = p.getRealizedPnl().setScale(2, RoundingMode.HALF_UP);
+            // Get realized profit/loss from trade history
+            BigDecimal realized = p.getRealizedPnl().setScale(2, RoundingMode.HALF_UP);
 
-        // total profit
-        BigDecimal total = realized.add(unrealized);
+            // Total profit = realized + unrealized
+            BigDecimal total = realized.add(unrealized);
 
-        PortfolioResponseDto dto = new PortfolioResponseDto();
-        dto.setSymbol(p.getStock().getSymbol());
-        dto.setName(p.getStock().getName());
-        dto.setQuantity(p.getQuantity());
-        dto.setAvgCost(p.getAvgCost().setScale(2, RoundingMode.HALF_UP));
-        dto.setCurrentPrice(currentPrice.setScale(2, RoundingMode.HALF_UP));
-        dto.setRealizedProfit(realized);
-        dto.setUnrealizedProfit(unrealized);
-        dto.setTotalProfit(total);
+            // Build response DTO
+            PortfolioResponseDto dto = new PortfolioResponseDto();
+            dto.setSymbol(p.getStock().getSymbol());
+            dto.setName(p.getStock().getName());
+            dto.setQuantity(p.getQuantity());
+            dto.setAvgCost(p.getAvgCost().setScale(2, RoundingMode.HALF_UP));
+            dto.setCurrentPrice(currentPrice.setScale(2, RoundingMode.HALF_UP));
+            dto.setRealizedProfit(realized);
+            dto.setUnrealizedProfit(unrealized);
+            dto.setTotalProfit(total);
 
-        return dto;
-    }).collect(Collectors.toList());
+            return dto;
+        }).collect(Collectors.toList());
+    }
+    
+    // Calculate total profit including cleared positions
+    public BigDecimal getTotalProfit(Long userId) {
+        List<Portfolio> allPortfolios = portfolioRepository.findByUserId(userId);
+        
+        BigDecimal totalProfit = BigDecimal.ZERO;
+        
+        // Sum profit from all portfolios (both active and cleared positions)
+        for (Portfolio portfolio : allPortfolios) {
+            // Get current price for active positions
+            BigDecimal currentPrice = stockRepository.findById(portfolio.getStock().getId())
+                .map(Stock::getPrice)
+                .orElse(BigDecimal.ZERO);
+            
+            BigDecimal qty = BigDecimal.valueOf(portfolio.getQuantity());
+            
+            // Unrealized profit for active positions
+            BigDecimal unrealized = currentPrice
+                .subtract(portfolio.getAvgCost())
+                .multiply(qty)
+                .setScale(2, RoundingMode.HALF_UP);
+            
+            // Realized profit from trades
+            BigDecimal realized = portfolio.getRealizedPnl().setScale(2, RoundingMode.HALF_UP);
+            
+            // Add to total
+            totalProfit = totalProfit.add(realized).add(unrealized);
+        }
+        
+        return totalProfit.setScale(2, RoundingMode.HALF_UP);
     }
 }

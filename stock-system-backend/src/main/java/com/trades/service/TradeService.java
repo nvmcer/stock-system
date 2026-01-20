@@ -33,12 +33,13 @@ public class TradeService {
         this.portfolioRepository = portfolioRepository;
     }
 
+    // Execute buy or sell trade and update portfolio
     @Transactional
     public Trade executeTrade(Long userId, TradeRequestDto request) {
         User user = userRepository.findById(userId).orElseThrow();
         Stock stock = stockRepository.findBySymbol(request.getSymbol()).orElseThrow();
 
-        // save trade record
+        // Save trade record
         Trade trade = new Trade();
         trade.setUser(user);
         trade.setStock(stock);
@@ -47,26 +48,27 @@ public class TradeService {
         trade.setPrice(request.getPrice());
         tradeRepository.save(trade);
 
-        // update portfolio
+        // Get or create portfolio entry
         Portfolio portfolio = portfolioRepository.findByUserIdAndStockId(userId, stock.getId())
                 .orElse(null);
 
         if ("BUY".equalsIgnoreCase(request.getType())) {
             if (portfolio == null) {
-                // create new portfolio
+                // Create new portfolio entry for first purchase
                 portfolio = new Portfolio();
                 portfolio.setUser(user);
                 portfolio.setStock(stock);
                 portfolio.setQuantity(request.getQuantity());
                 portfolio.setAvgCost(request.getPrice());
             } else {
-                // update existing portfolio
+                // Update existing portfolio with new average cost
                 int oldQty = portfolio.getQuantity();
                 BigDecimal oldCost = portfolio.getAvgCost().multiply(BigDecimal.valueOf(oldQty));
 
                 int newQty = oldQty + request.getQuantity();
                 BigDecimal newCost = oldCost.add(request.getPrice().multiply(BigDecimal.valueOf(request.getQuantity())));
 
+                // Calculate average cost: totalValue / totalQuantity
                 BigDecimal newAvgCost = newCost.divide(BigDecimal.valueOf(newQty), RoundingMode.HALF_UP);
 
                 portfolio.setQuantity(newQty);
@@ -75,6 +77,7 @@ public class TradeService {
             portfolioRepository.save(portfolio);
 
         } else if ("SELL".equalsIgnoreCase(request.getType())) {
+            // Validate sufficient shares to sell
             if (portfolio == null || portfolio.getQuantity() < request.getQuantity()) {
                 throw new IllegalArgumentException("Insufficient shares to sell");
             }
@@ -84,14 +87,17 @@ public class TradeService {
 
             portfolio.setQuantity(oldQty);
 
+            // Calculate realized profit/loss: (sellPrice - avgCost) × quantity
             BigDecimal realizedDelta = request.getPrice()
                     .subtract(portfolio.getAvgCost())
                     .multiply(BigDecimal.valueOf(requestQty)); 
 
+            // Add to cumulative realized P/L
             portfolio.setRealizedPnl(
                     portfolio.getRealizedPnl().add(realizedDelta)
             );
 
+            // Delete portfolio if all shares sold, otherwise update
             if (oldQty == 0) {
                 portfolioRepository.delete(portfolio);
             } else {
@@ -102,6 +108,7 @@ public class TradeService {
         return trade;
     }
 
+    // Retrieve all trades for a user
     public List<TradeResponseDto> getTradeHistory(Long userId) {
         List<Trade> trades = tradeRepository.findByUserId(userId);
         return trades.stream().map(t -> {

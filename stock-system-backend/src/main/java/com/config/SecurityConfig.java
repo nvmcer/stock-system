@@ -27,29 +27,40 @@ public class SecurityConfig {
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
     }
 
+    // Encoder for hashing user passwords
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // Security filter chain - defines authorization rules and filters
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .authorizeHttpRequests(authz -> authz
+                        // Allow public access to authentication and error endpoints
                         .requestMatchers("/api/auth/**", "/error").permitAll()
+                        // All other requests require authentication
                         .anyRequest().authenticated()
                 )
+                // Add JWT filter before Spring's default authentication filter
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // Configure CORS policy for frontend requests
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3001"));
+        // Allow requests from frontend URL
+        config.setAllowedOrigins(List.of(
+            "http://localhost:3001",
+            "https://d1pe0v14ojzozj.cloudfront.net"
+        ));
+        // Allow HTTP methods
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
