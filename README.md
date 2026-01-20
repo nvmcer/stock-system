@@ -18,77 +18,45 @@ Core Components
 🏗️ System Architecture
 
 ```mermaid
-flowchart TD
-  %% ============================
-  %% Frontend Layer
-  %% ============================
-  subgraph Frontend["Frontend"]
-    Browser["User Browser"]
-    CF["CloudFront<br>HTTPS + CDN"]
-    S3["S3 Bucket<br>Static Site (React + Vite)"]
-    Browser --> CF --> S3
+flowchart TB
+ subgraph Frontend["Frontend"]
+        Browser["User Browser"]
+        CF["CloudFront<br>HTTPS + CDN"]
+        S3["S3 Bucket<br>Static Site (React + Vite)"]
   end
-
-  %% ============================
-  %% Backend Layer (Subnets)
-  %% ============================
-  subgraph PublicSubnet["Public Subnet"]
-    ALB["Application Load Balancer<br>Listener 80/443"]
+ subgraph PublicSubnet["Public Subnet"]
+        ALB["Application Load Balancer<br>Listener 80/443"]
+        ECS["ECS Service<br>Spring Boot API<br>Fargate + awsvpc<br>TargetGroup: IP"]
   end
-
-  subgraph PrivateSubnet["Private Subnet"]
-    ECS["ECS Service<br>Spring Boot API<br>Fargate + awsvpc<br>TargetGroup: IP"]
-    ECR["ECR<br>Container Registry"]
-    Lambda["Lambda<br>Scheduled Stock Fetch"]
-    RDS["RDS PostgreSQL<br>Private Only"]
-    Finnhub["Finnhub API<br>External Market Data"]
+ subgraph PrivateSubnet["Private Subnet"]
+        ECR["ECR<br>Container Registry"]
+        Lambda["Lambda<br>Scheduled Stock Fetch"]
+        RDS["RDS PostgreSQL<br>Private Only"]
+        Finnhub["Finnhub API<br>External Market Data"]
   end
-
-  %% ============================
-  %% Main Data Flows
-  %% ============================
-  S3 -->|API Call| ALB
-  ALB -->|Forward to TargetGroup| ECS
-  ECS -->|Write / Query| RDS
-  ECS -->|Invoke or Receive Data| Lambda
-  Lambda -->|Fetch Stock Data| Finnhub
-  ECR --> ECS
-
-  %% ============================
-  %% Infrastructure Layer
-  %% ============================
-  subgraph Infrastructure["Infrastructure (Terraform Managed)"]
-    VPC["VPC<br>ap-northeast-1"]
-    SG["Security Groups"]
-    IAM["IAM Roles"]
-    TF["Terraform<br>Infrastructure as Code"]
+ subgraph Infrastructure["Infrastructure (Terraform Managed)"]
+        VPC["VPC<br>ap-northeast-1"]
+        SG["Security Groups"]
+        IAM["IAM Roles"]
+        TF["Terraform<br>Infrastructure as Code"]
   end
+    Browser --> CF
+    CF --> S3
+    S3 -- API Call --> ALB
+    ALB -- Forward to TargetGroup --> ECS
+    ECS L_ECS_RDS_0@-- Write / Query --> RDS
+    ECS -- Invoke or Receive Data --> Lambda
+    Lambda -- Fetch Stock Data --> Finnhub
+    ECR --> ECS
+    Infrastructure --- PublicSubnet & PrivateSubnet
+    SG -. Protects .- ALB & ECS & RDS
+    IAM -. Assigned to .- ECS & Lambda
+    TF -. Manages .- VPC & ECS & ALB & Lambda & RDS & ECR
 
-  %% ============================
-  %% Infra Relationships
-  %% ============================
-  Infrastructure --- PublicSubnet
-  Infrastructure --- PrivateSubnet
+     Infrastructure:::infra
+    classDef infra fill:#F9F9F9,stroke:#bbb
 
-  SG -. Protects .- ALB
-  SG -. Protects .- ECS
-  SG -. Protects .- RDS
-
-  IAM -. Assigned to .- ECS
-  IAM -. Assigned to .- Lambda
-
-  TF -. Manages .- VPC
-  TF -. Manages .- ECS
-  TF -. Manages .- ALB
-  TF -. Manages .- Lambda
-  TF -. Manages .- RDS
-  TF -. Manages .- ECR
-
-  %% ============================
-  %% Styling
-  %% ============================
-  classDef infra fill:#F9F9F9,stroke:#bbb;
-  class Infrastructure infra;
+    L_ECS_RDS_0@{ curve: natural }
 ```
 
 👉 Stock System — Full Stack Architecture
@@ -211,13 +179,8 @@ Dev Mode
 - Hot reload for FastAPI
 - Spring Boot dev mode
 - Bind mounts for all services
-Prod Mode
-- Optimized images
-- No bind mounts
-- Static frontend served by backend or Nginx (optional)
 
 🛠️ Makefile Commands
 - make dev       # Start dev environment
-- make prod      # Start production environment
 - make logs      # View logs
 - make down      # Stop all containers
