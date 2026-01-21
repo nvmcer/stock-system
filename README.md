@@ -138,8 +138,13 @@ stock-system/
 │   ├── requirements.txt
 │   └── Dockerfile
 │
+├── stock-system-infra/          # terraform
+│   ├── modules/
+│   ├── main.tf
+│   └── providers.tf
+│   └── variables.tf
+│
 ├── docker-compose.dev.yml       # Dev environment
-├── docker-compose.prod.yml      # Production environment
 ├── Makefile                     # Automation commands
 └── README.md
 ```
@@ -152,16 +157,6 @@ Prerequisites
 - Git
 Start Dev Environment
 make dev
-
-🏭 Production Build
-
-make prod
-
-This will:
-- Build frontend static files
-- Build backend JAR
-- Build FastAPI image
-- Start production docker-compose
 
 🔧 Environment Variables
 - Frontend (.env.example)
