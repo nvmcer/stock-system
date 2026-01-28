@@ -61,12 +61,27 @@ resource "aws_lambda_function" "this" {
 resource "aws_lambda_function_url" "this" {
   function_name      = aws_lambda_function.this.function_name
   authorization_type = "NONE" 
+
+  cors {
+    allow_origins     = ["*"]
+    allow_methods     = ["*"]
+    allow_headers     = ["*"]
+    expose_headers    = ["keep-alive", "x-amzn-RequestId"]
+    max_age           = 86400
+  }
 }
 
-resource "aws_lambda_permission" "url_permission" {
-  statement_id           = "AllowFunctionUrlInvoke"
+resource "aws_lambda_permission" "url_allow_public" {
+  statement_id           = "FunctionURLAllowPublicAccess"
   action                 = "lambda:InvokeFunctionUrl"
   function_name          = aws_lambda_function.this.function_name
   principal              = "*"
   function_url_auth_type = "NONE"
+}
+
+resource "aws_lambda_permission" "url_allow_invoke" {
+  statement_id  = "FunctionURLAllowInvokeAction"
+  action        = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.this.function_name
+  principal     = "*"
 }

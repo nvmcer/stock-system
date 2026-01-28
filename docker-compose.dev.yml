@@ -18,8 +18,8 @@ services:
   fastapi:
     image: python:3.12-slim
     container_name: stock-system-marketdata-dev
-    environment:
-      - FINNHUB_KEY=${FINNHUB_KEY}
+    env_file:
+      - ./stock-system-marketdata/.env
     working_dir: /app
     volumes:
       - ./stock-system-marketdata:/app  # Hot reload for development
