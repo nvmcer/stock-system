@@ -2,6 +2,20 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
+// API response format from login endpoint (wrapped in ApiResponse)
+interface LoginResponse {
+  success: boolean;
+  code: string;
+  message: string;
+  data: {
+    token: string;
+    role: string;
+    userId: number;
+    username: string;
+  };
+  timestamp: string;
+}
+
 function RegisterPage() {
   const [username, setUsername] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -20,22 +34,27 @@ function RegisterPage() {
       await api.post("/api/auth/register", { username, password });
       
       // Auto-login after successful registration
-      const res = await api.post("/api/auth/login", { username, password });
+      const res = await api.post<LoginResponse>("/api/auth/login", { username, password });
+      
+      // Access data from ApiResponse envelope
+      const loginData = res.data.data;
       
       // Store authentication info
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("userId", String(res.data.userId));
-      localStorage.setItem("username", res.data.username);
+      localStorage.setItem("token", loginData.token);
+      localStorage.setItem("role", loginData.role);
+      localStorage.setItem("userId", String(loginData.userId));
+      localStorage.setItem("username", loginData.username);
       
       // Redirect to appropriate dashboard
-      if (res.data.role === "ROLE_ADMIN") {
+      if (loginData.role === "ROLE_ADMIN") {
         navigate("/admin/dashboard");
       } else {
         navigate("/user/dashboard");
       }
     } catch (err: any) {
-      alert("Registration failed: " + (err.response?.data?.message || err.message));
+      // Handle both wrapped and unwrapped error responses
+      const errorMessage = err.response?.data?.data?.message || err.response?.data?.message || err.message;
+      alert("Registration failed: " + errorMessage);
     }
   };
 

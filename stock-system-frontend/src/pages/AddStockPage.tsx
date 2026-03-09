@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
@@ -8,13 +8,28 @@ function AddStockPage() {
   const [price, setPrice] = useState<number>(0);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token || token === "undefined") {
+      navigate("/login");
+    }
+  }, [navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await api.post("/api/stocks", { symbol, name, price }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    navigate("/admin/dashboard");
+    try {
+      const res = await api.post("/api/stocks", { symbol, name, price }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        navigate("/admin/dashboard");
+      } else {
+        alert("Failed to add stock: " + res.data.message);
+      }
+    } catch (err: any) {
+      alert("Failed to add stock: " + (err.response?.data?.message || err.message));
+    }
   };
 
   return (

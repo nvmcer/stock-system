@@ -1,40 +1,19 @@
 # STYLE_GUIDE.md – Unified API Standards for Stock System
 
-This document defines the unified API response format, error handling, and consistency standards for all services in the stock system. It is based on analysis of current inconsistencies between the Java Spring Boot backend and Python FastAPI market data service.
+This document defines the unified API response format, error handling, and consistency standards for the stock system.
 
-## Current State Analysis
+## Architecture
 
-### Java Backend (Spring Boot)
-- **Mixed response patterns:**
-  - Raw DTOs/Entities (e.g., `List<StockResponseDto>`, `Trade`, `User`)
-  - `ResponseEntity<?>` with `Map<String, Object>` (e.g., `/api/auth/login`)
-  - `ResponseEntity<List<TradeResponseDto>>`
-  - `void` for delete operations
-- **Error handling:** Uses `GlobalExceptionHandler` returning `ApiResponse<T>` with fields:
-  ```json
-  { "status": 401, "message": "Unauthorized: ...", "data": null }
-  ```
-- **No unified success wrapper:** Successful responses do not use `ApiResponse`.
+### Services
+- **Backend (stock-system-backend):** Spring Boot Java application
+- **Frontend (stock-system-frontend):** React + TypeScript + Vite
+- **Infrastructure (stock-system-infra):** Terraform
 
-### Python FastAPI (Market Data Service)
-- **Consistent wrapper pattern:** All endpoints return:
-  ```json
-  {
-    "success": true,
-    "code": "200",
-    "message": "Operation successful",
-    "data": { ... },
-    "timestamp": "2025-02-02T10:30:00Z"
-  }
-  ```
-- **Error handling:** Same envelope with `success: false`, `code` as string, `message` describing error.
+### Database
+- PostgreSQL (local or Hetzner VPS)
 
-### Critical Inconsistencies
-1. **Success responses:** Java returns raw data, FastAPI wraps everything.
-2. **Error structure:** Java uses `status` (int) + `message`, FastAPI uses `success` + `code` (string) + `message`.
-3. **Metadata:** FastAPI includes `timestamp`; Java does not.
-4. **Client‑side expectations:** Frontend expects raw `data` for successful calls (e.g., `res.data` = array of stocks) but expects `err.response.data.message` for errors (wrapped).
-5. **Backend‑to‑backend call:** `MarketDataClientImpl` expects `Map<String, Double>` as the root response, but FastAPI returns the wrapper – this will cause deserialization failures.
+### External APIs
+- Finnhub API for stock market data (integrated directly into Spring Boot)
 
 ## Unified API Response Standard
 
@@ -109,11 +88,11 @@ Example (batch price fetch):
 ## Implementation Guidelines
 
 ### Java (Spring Boot)
-1. **Create a unified `ApiResponse` class** (replace existing `com.exception.ApiResponse`) with fields: `success`, `code`, `message`, `data`, `timestamp`.
+1. **Use `ApiResponse<T>` class** with fields: `success`, `code`, `message`, `data`, `timestamp`.
 2. **Use `@RestControllerAdvice`** to wrap all exceptions in the new envelope.
-3. **Modify all controller methods** to return `ResponseEntity<ApiResponse<T>>` (or `ApiResponse<T>` with `@ResponseBody`).
-4. **Provide a static helper** `ApiResponse.success(data, message)` and `ApiResponse.error(code, message)`.
-5. **Ensure timestamp generation** uses ISO 8601 UTC (e.g., `Instant.now().toString()`).
+3. **Controller methods** return `ApiResponse<T>`.
+4. **Static helpers:** `ApiResponse.success(data, message)` and `ApiResponse.error(code, message)`.
+5. **Timestamp generation** uses ISO 8601 UTC (`Instant.now().toString()`).
 
 Example controller method:
 ```java
@@ -124,17 +103,10 @@ public ApiResponse<StockResponseDto> getStock(@PathVariable Long id) {
 }
 ```
 
-### Python (FastAPI)
-1. **Keep existing `create_response` helper** – it already conforms to the standard.
-2. **Ensure all endpoints** use `create_response` (already satisfied).
-3. **Standardize `code` values** as strings (already done).
-4. **Use HTTP status codes** that match the numeric `code` (e.g., `status_code=200` when `code="200"`).
-
 ### Frontend (React/TypeScript)
-1. **Update API client** to expect the envelope for **all** responses.
+1. **API client** expects the envelope for **all** responses.
 2. **Access payload** as `response.data.data` (first `data` is Axios response, second is envelope field).
 3. **Check `success` flag** before processing; handle errors uniformly.
-4. **Phase‑in strategy:** Initially, adapt client to handle both wrapped and raw responses during migration.
 
 Example adapted service:
 ```typescript
@@ -145,31 +117,6 @@ if (response.data.success) {
   alert(`Error ${response.data.code}: ${response.data.message}`);
 }
 ```
-
-### Backend‑to‑Backend Calls
-1. **Update `MarketDataClientImpl`** to expect the envelope and extract `data`.
-2. **Or modify FastAPI endpoint** to return raw `Map<String, Double>` (not recommended; breaks consistency).
-3. **Preferred approach:** Keep envelope and update client to unwrap `data`.
-
-## Migration Plan
-
-### Phase 1: Define Standard & Update Shared Components
-- Create/update `ApiResponse` class in Java.
-- Ensure FastAPI `create_response` matches standard exactly.
-- Update `GlobalExceptionHandler` to use new envelope.
-
-### Phase 2: Update Critical Endpoints
-- Update `/api/auth/login` and `/api/auth/register` to use envelope.
-- Update `/api/stocks`, `/api/trades`, `/api/portfolio` endpoints.
-- Update frontend to handle wrapped responses for these endpoints.
-
-### Phase 3: Update Remaining Endpoints
-- Gradually convert all other controllers.
-- Update frontend as needed.
-
-### Phase 4: Remove Legacy Support
-- Once all endpoints are migrated, remove compatibility code.
-- Enforce envelope usage via code reviews / linting.
 
 ## Additional API Conventions
 
@@ -182,21 +129,18 @@ if (response.data.success) {
 ### Request/Response Naming
 - Request DTOs: suffix `RequestDto` (e.g., `StockRequestDto`).
 - Response DTOs: suffix `ResponseDto` (e.g., `StockResponseDto`).
-- Use `@JsonProperty` (Java) or `alias` (Pydantic) to ensure snake_case in JSON.
+- Use `@JsonProperty` to ensure snake_case in JSON.
 
 ### Validation
 - Use Jakarta Bean Validation (`@NotNull`, `@Size`, `@Email`) in Java.
-- Use Pydantic validators in Python.
 - Return `code: "400"` with validation errors in `data` field.
 
 ### Documentation
 - Annotate Java controllers with `@Operation` (SpringDoc OpenAPI).
-- Annotate FastAPI endpoints with `@app.get(..., response_model=...)`.
 - Keep OpenAPI spec synchronized.
 
 ## Monitoring & Compliance
 - Add automated tests that verify envelope structure for all endpoints.
-- Use integration tests to ensure Java/FastAPI interoperability.
 - Include envelope checks in CI pipeline.
 
 ## Exceptions
@@ -204,5 +148,5 @@ if (response.data.success) {
 - **Static assets** (frontend files) are not subject to this standard.
 
 ---
-*Last updated: 2025‑02‑02*  
-*Owners: Backend Team, Frontend Team, DevOps Team*
+*Last updated: 2026-03-07*  
+*Owners: Backend Team, Frontend Team*

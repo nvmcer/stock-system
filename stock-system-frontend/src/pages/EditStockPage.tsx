@@ -11,24 +11,43 @@ function EditStockPage() {
 
   useEffect(() => {
     const token = localStorage.getItem("token");
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+
     api.get(`/api/stocks/${id}`, {
       headers: { Authorization: `Bearer ${token}` }
     })
     .then(res => {
-      setSymbol(res.data.symbol)
-      setName(res.data.name);
-      setPrice(res.data.price);
+      // Handle ApiResponse envelope
+      if (res.data.success) {
+        const stock = res.data.data;
+        setSymbol(stock.symbol);
+        setName(stock.name);
+        setPrice(stock.price);
+      } else {
+        console.error("Failed to load stock:", res.data.message);
+      }
     })
     .catch(err => console.error("Failed to load stock:", err));
-  }, [id]);
+  }, [id, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const token = localStorage.getItem("token");
-    await api.put(`/api/stocks/${id}`, { symbol, name, price }, {
-      headers: { Authorization: `Bearer ${token}` }
-    });
-    navigate("/admin/dashboard");
+    try {
+      const res = await api.put(`/api/stocks/${id}`, { symbol, name, price }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.data.success) {
+        navigate("/admin/dashboard");
+      } else {
+        alert("Failed to update stock: " + res.data.message);
+      }
+    } catch (err: any) {
+      alert("Failed to update stock: " + (err.response?.data?.message || err.message));
+    }
   };
 
   return (

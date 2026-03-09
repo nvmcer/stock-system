@@ -1,34 +1,50 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function StocksPage() {
   const [stocks, setStocks] = useState<any[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const [prices, setPrices] = useState<{ [key: string]: number }>({});
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+
     const fetchStocks = async () => {
       try {
         const res = await api.get("/api/stocks", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setStocks(res.data);
+        // Handle ApiResponse envelope
+        if (res.data.success) {
+          setStocks(res.data.data || []);
+        } else {
+          alert("Failed to get Stock List: " + res.data.message);
+        }
       } catch (err: any) {
         alert("Failed to get Stock List: " + (err.response?.data?.message || err.message));
       }
     };
     fetchStocks();
-  }, [token]);
+  }, [token, navigate]);
 
   const handleBuy = async (symbol: string) => {
     try {
-      await api.post(`/api/trades/buy?userId=${userId}`,
+      const res = await api.post(`/api/trades/buy?userId=${userId}`,
         { symbol, quantity: quantities[symbol] || 0, price: prices[symbol] || 0 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Successfully bought");
+      if (res.data.success) {
+        alert("Successfully bought");
+      } else {
+        alert("Failed to buy: " + res.data.message);
+      }
     } catch (err: any) {
       alert("Failed to buy: " + (err.response?.data?.message || err.message));
     }
@@ -36,11 +52,15 @@ function StocksPage() {
 
   const handleSell = async (symbol: string) => {
     try {
-      await api.post(`/api/trades/sell?userId=${userId}`,
+      const res = await api.post(`/api/trades/sell?userId=${userId}`,
         { symbol, quantity: quantities[symbol] || 0, price: prices[symbol] || 0 },
         { headers: { Authorization: `Bearer ${token}` } }
       );
-      alert("Successfully sold");
+      if (res.data.success) {
+        alert("Successfully sold");
+      } else {
+        alert("Failed to sell: " + res.data.message);
+      }
     } catch (err: any) {
       alert("Failed to sell: " + (err.response?.data?.message || err.message));
     }

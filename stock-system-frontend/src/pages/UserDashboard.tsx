@@ -33,7 +33,9 @@ function UserDashboard() {
               color: activeTab === 'portfolio' ? '#6366f1' : 'inherit',
               borderBottom: activeTab === 'portfolio' ? '2px solid #6366f1' : 'none',
               cursor: 'pointer',
-              border: 'none',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
               borderRadius: '0'
             }}
           >
@@ -48,7 +50,9 @@ function UserDashboard() {
               color: activeTab === 'stocks' ? '#6366f1' : 'inherit',
               borderBottom: activeTab === 'stocks' ? '2px solid #6366f1' : 'none',
               cursor: 'pointer',
-              border: 'none',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
               borderRadius: '0'
             }}
           >
@@ -63,7 +67,9 @@ function UserDashboard() {
               color: activeTab === 'trades' ? '#6366f1' : 'inherit',
               borderBottom: activeTab === 'trades' ? '2px solid #6366f1' : 'none',
               cursor: 'pointer',
-              border: 'none',
+              borderTop: 'none',
+              borderLeft: 'none',
+              borderRight: 'none',
               borderRadius: '0'
             }}
           >

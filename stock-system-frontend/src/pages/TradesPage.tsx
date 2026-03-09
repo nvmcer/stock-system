@@ -1,24 +1,36 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function TradesPage() {
   const [trades, setTrades] = useState<any[]>([]);
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
 
   useEffect(() => {
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+
     const fetchTrades = async () => {
       try {
         const res = await api.get(`/api/trades/history?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setTrades(res.data);
+        // Handle ApiResponse envelope
+        if (res.data.success) {
+          setTrades(res.data.data || []);
+        } else {
+          alert("Failed to get Trade History: " + res.data.message);
+        }
       } catch (err: any) {
         alert("Failed to get Trade History: " + (err.response?.data?.message || err.message));
       }
     };
     if (userId) fetchTrades();
-  }, [userId, token]);
+  }, [userId, token, navigate]);
 
   return (
     <div>

@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
 function PortfolioPage() {
   const [portfolio, setPortfolio] = useState<any[]>([]);
+  const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
   const totalProfit = portfolio.reduce(
@@ -11,18 +13,28 @@ function PortfolioPage() {
   );
 
   useEffect(() => {
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+
     const fetchPortfolio = async () => {
       try {
         const res = await api.get(`/api/portfolio?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setPortfolio(res.data);
+        // Handle ApiResponse envelope
+        if (res.data.success) {
+          setPortfolio(res.data.data || []);
+        } else {
+          alert("Failed to get portfolio: " + res.data.message);
+        }
       } catch (err: any) {
-        alert("Failed to get Stock List: " + (err.response?.data?.message || err.message));
+        alert("Failed to get portfolio: " + (err.response?.data?.message || err.message));
       }
     };
     if (userId) fetchPortfolio();
-  }, [userId, token]);
+  }, [userId, token, navigate]);
 
   return (
     <div>

@@ -14,23 +14,6 @@ services:
     ports:
       - "5432:5432"
 
-  # FastAPI market data service for fetching stock prices
-  fastapi:
-    image: python:3.12-slim
-    container_name: stock-system-marketdata-dev
-    env_file:
-      - ./stock-system-marketdata/.env
-    working_dir: /app
-    volumes:
-      - ./stock-system-marketdata:/app  # Hot reload for development
-    command: >
-      sh -c "pip install --no-cache-dir -r requirements.txt &&
-            uvicorn app.main:app --host 0.0.0.0 --port 8001 --reload"
-    ports:
-      - "8001:8001"
-    depends_on:
-      - postgres
-
   # Spring Boot backend application
   backend:
     image: eclipse-temurin:21-jdk
@@ -39,14 +22,13 @@ services:
     volumes:
       - ./stock-system-backend:/app  # Hot reload for development
       - ~/.m2:/root/.m2               # Maven cache
-    command: ./mvnw spring-boot:run
+    command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8787"
     ports:
       - "8080:8080"
+      - "8787:8787"
     environment:
-      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/stockdb
-      SPRING_DATASOURCE_USERNAME: stockuser
-      SPRING_DATASOURCE_PASSWORD: stockpassword
       SPRING_PROFILES_ACTIVE: dev
+      FINNHUB_API_KEY: ${FINNHUB_API_KEY}
     depends_on:
       - postgres
 

@@ -27,7 +27,12 @@ stock-system-backend/.mvn/
 stock-system-backend/mvnw
 stock-system-backend/mvnw.cmd
 stock-system-backend/build/
-backend/.gradle/
+stock-system-backend/bin/
+bin/
+.factorypath
+.project
+.settings/
+.classpath
 
 # ============================
 # Node / React (frontend)

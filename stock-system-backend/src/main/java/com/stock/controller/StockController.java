@@ -1,7 +1,6 @@
 package com.stock.controller;
 
 import java.util.List;
-import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -15,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.exception.ApiResponse;
 import com.stock.dto.StockRequestDto;
 import com.stock.dto.StockResponseDto;
 import com.stock.service.PriceUpdateService;
@@ -33,41 +33,42 @@ public class StockController {
     }
 
     @GetMapping
-    public List<StockResponseDto> getAll() {
-        return stockService.findAll();
+    public ResponseEntity<ApiResponse<List<StockResponseDto>>> getAll() {
+        return ResponseEntity.ok(ApiResponse.success(stockService.findAll(), "Stocks retrieved successfully"));
     }
 
     @GetMapping("/{id}")
-    public StockResponseDto getStockById(@PathVariable Long id) {
-        return stockService.findById(id);
+    public ResponseEntity<ApiResponse<StockResponseDto>> getStockById(@PathVariable Long id) {
+        return ResponseEntity.ok(ApiResponse.success(stockService.findById(id), "Stock retrieved successfully"));
     }
 
     @GetMapping("/symbol/{symbol}")
-    public StockResponseDto getStockBySymbol(@PathVariable String symbol) {
-        return stockService.findBySymbol(symbol);
+    public ResponseEntity<ApiResponse<StockResponseDto>> getStockBySymbol(@PathVariable String symbol) {
+        return ResponseEntity.ok(ApiResponse.success(stockService.findBySymbol(symbol), "Stock retrieved successfully"));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public StockResponseDto create(@RequestBody StockRequestDto request) {
-        return stockService.create(request);
+    public ResponseEntity<ApiResponse<StockResponseDto>> create(@RequestBody StockRequestDto request) {
+        return ResponseEntity.ok(ApiResponse.success(stockService.create(request), "Stock created successfully"));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
-    public StockResponseDto updateStock(@PathVariable Long id, @RequestBody StockRequestDto request) {
-        return stockService.update(id, request);
+    public ResponseEntity<ApiResponse<StockResponseDto>> updateStock(@PathVariable Long id, @RequestBody StockRequestDto request) {
+        return ResponseEntity.ok(ApiResponse.success(stockService.update(id, request), "Stock updated successfully"));
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
         stockService.delete(id);
+        return ResponseEntity.ok(ApiResponse.success(null, "Stock deleted successfully"));
     }
     
     @PostMapping("/update-prices")
-    public ResponseEntity<?> updatePrices() {
+    public ResponseEntity<ApiResponse<String>> updatePrices() {
         priceUpdateService.updateAllPrices();
-        return ResponseEntity.ok(Map.of("message", "Update Stock Prices Successful"));
+        return ResponseEntity.ok(ApiResponse.success("Update Stock Prices Successful", "Prices updated successfully"));
     }
 }

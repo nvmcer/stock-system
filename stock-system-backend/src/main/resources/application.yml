@@ -1,3 +1,9 @@
 spring:
   application:
     name: stock-system
+  profiles:
+    active: dev
+
+finnhub:
+  api:
+    key: ${FINNHUB_API_KEY:}

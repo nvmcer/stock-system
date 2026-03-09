@@ -16,10 +16,22 @@ function AdminDashboard() {
   // List of stocks
   useEffect(() => {
     const token = localStorage.getItem("token");
-    api.get<Stock[]>("/api/stocks", {
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+    
+    api.get("/api/stocks", {
       headers: { Authorization: `Bearer ${token}` }
     })
-    .then(res => setStocks(res.data))
+    .then(res => {
+      // Handle ApiResponse envelope
+      if (res.data.success) {
+        setStocks(res.data.data || []);
+      } else {
+        console.error("Failed to fetch stocks:", res.data.message);
+      }
+    })
     .catch(err => console.error("Failed to fetch stocks:", err));
   }, []);
 
@@ -27,12 +39,17 @@ function AdminDashboard() {
   const handleDelete = async (id: number) => {
     const token = localStorage.getItem("token");
     try {
-      await api.delete(`/api/stocks/${id}`, {
+      const res = await api.delete(`/api/stocks/${id}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      setStocks(stocks.filter(stock => stock.id !== id));
-    } catch (err) {
+      if (res.data.success) {
+        setStocks(stocks.filter(stock => stock.id !== id));
+      } else {
+        alert("Failed to delete: " + res.data.message);
+      }
+    } catch (err: any) {
       console.error("Delete failed:", err);
+      alert("Failed to delete: " + (err.response?.data?.message || err.message));
     }
   };
 
@@ -52,16 +69,22 @@ function AdminDashboard() {
         }
       );
 
-      alert(res.data.message);
-      
-      // Fetch updated stock prices from server
-      const updatedStocks = await api.get<Stock[]>("/api/stocks", {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      
-      // Update UI with new prices
-      setStocks(updatedStocks.data);
-      alert("Stock prices refreshed!");
+      if (res.data.success) {
+        alert(res.data.message || "Prices updated successfully");
+        
+        // Fetch updated stock prices from server
+        const updatedStocks = await api.get("/api/stocks", {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        // Handle ApiResponse envelope
+        if (updatedStocks.data.success) {
+          setStocks(updatedStocks.data.data || []);
+        }
+        alert("Stock prices refreshed!");
+      } else {
+        alert("Failed to update prices: " + res.data.message);
+      }
     } catch (err: any) {
       console.error("Price update failed:", err);
       alert("Failed to update prices: " + (err.response?.data?.message || err.message));

@@ -20,7 +20,4 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-
-market:
-  data:
-    url: http://fastapi:8001
+ 

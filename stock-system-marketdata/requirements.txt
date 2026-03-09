@@ -1,5 +1,0 @@
-requests==2.32.5
-fastapi==0.95.2
-mangum==0.14.0
-uvicorn[standard]
-python-dotenv

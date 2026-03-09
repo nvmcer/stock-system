@@ -15,18 +15,29 @@ function ManageUsersPage() {
   // Fetch all users on component mount
   useEffect(() => {
     const token = localStorage.getItem("token");
+    
+    if (!token || token === "undefined") {
+      navigate("/login");
+      return;
+    }
+    
     const fetchUsers = async () => {
       try {
-        const res = await api.get<User[]>("/api/users", {
+        const res = await api.get("/api/users", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        setUsers(res.data);
+        // Handle ApiResponse envelope
+        if (res.data.success) {
+          setUsers(res.data.data || []);
+        } else {
+          console.error("Failed to fetch users:", res.data.message);
+        }
       } catch (err) {
         console.error("Failed to fetch users:", err);
       }
     };
     if (token) fetchUsers();
-  }, []);
+  }, [navigate]);
 
   // Delete user by ID
   const handleDeleteUser = async (username: string, id: number) => {

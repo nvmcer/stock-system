@@ -2,12 +2,18 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
 
-// API response format from login endpoint
+// API response format from login endpoint (wrapped in ApiResponse)
 interface LoginResponse {
-  token: string;        // JWT token for authentication
-  role: string;         // User role (ROLE_ADMIN or ROLE_USER)
-  userId: string;       // User ID
-  username: string;     // Username
+  success: boolean;
+  code: string;
+  message: string;
+  data: {
+    token: string;        // JWT token for authentication
+    role: string;         // User role (ROLE_ADMIN or ROLE_USER)
+    userId: number;      // User ID
+    username: string;    // Username
+  };
+  timestamp: string;
 }
 
 function LoginPage() {
@@ -27,20 +33,36 @@ function LoginPage() {
       // Send login request to backend
       const res = await api.post<LoginResponse>("/api/auth/login", { username, password });
       
+      // Debug: log the full response
+      console.log("Login response:", res.data);
+      
+      // Access data from ApiResponse envelope (res.data is the envelope, res.data.data contains the payload)
+      const loginData = res.data.data;
+      
+      // Validate loginData exists
+      if (!loginData || !loginData.token) {
+        console.error("Invalid login response:", loginData);
+        alert("Login failed: Invalid response from server");
+        return;
+      }
+      
       // Store authentication info in localStorage for future requests
-      localStorage.setItem("token", res.data.token);
-      localStorage.setItem("role", res.data.role);
-      localStorage.setItem("userId", String(res.data.userId));
-      localStorage.setItem("username", res.data.username);
+      localStorage.setItem("token", loginData.token);
+      localStorage.setItem("role", loginData.role);
+      localStorage.setItem("userId", String(loginData.userId));
+      localStorage.setItem("username", loginData.username);
       
       // Redirect to appropriate dashboard based on user role
-      if (res.data.role === "ROLE_ADMIN") {
+      if (loginData.role === "ROLE_ADMIN") {
         navigate("/admin/dashboard");
       } else {
         navigate("/user/dashboard");
       }
     } catch (err: any) {
-      alert("Login failed: " + (err.response?.data?.message || err.message));
+      console.error("Login error:", err);
+      // Handle both wrapped and unwrapped error responses
+      const errorMessage = err.response?.data?.data?.message || err.response?.data?.message || err.message;
+      alert("Login failed: " + errorMessage);
     }
   };
 

@@ -1,17 +1,48 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState, type ReactNode } from "react";
+import { useNavigate, Outlet } from "react-router-dom";
 import "./Layout.css";
 
-const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Get user info from localStorage
+interface LayoutProps {
+  children?: ReactNode;
+}
+
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
-  const role = localStorage.getItem("role");
-  const username = localStorage.getItem("username");
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
+  const [role, setRole] = useState<string | null>(null);
+  const [username, setUsername] = useState<string | null>(null);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userRole = localStorage.getItem("role");
+    const user = localStorage.getItem("username");
+
+    // Check if token exists and is valid (not "undefined" or null)
+    if (!token || token === "undefined" || token === "null") {
+      // Token is missing or invalid - redirect to login
+      localStorage.clear();
+      navigate("/login");
+      setIsAuthenticated(false);
+      return;
+    }
+
+    setRole(userRole);
+    setUsername(user);
+    setIsAuthenticated(true);
+  }, [navigate]);
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
+
+  if (!isAuthenticated) {
+    return null; // or a loading spinner
+  }
 
   return (
     <div className="app-shell">
       <header className="app-header">
-        {/* Header brand/logo - clicking navigates to appropriate dashboard */}
         <div
           className="brand"
           onClick={() =>
@@ -21,37 +52,24 @@ const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
           StocksBoard
         </div>
         
-        {/* Top navigation bar */}
         <nav className="nav">
           <div className="nav-spacer" />
           
-          {/* Display current user */}
           <div className="user">
             <span style={{ fontSize: '0.85rem', color: 'var(--muted)', marginRight: '6px' }}>👤</span>
             <strong style={{ color: '#e6eef8' }}>{username || "Guest"}</strong>
           </div>
           
-          {/* Logout button */}
-          <button
-            className="btn-ghost"
-            onClick={() => {
-              // Clear user session from localStorage
-              localStorage.removeItem("token");
-              localStorage.removeItem("role");
-              localStorage.removeItem("userId");
-              localStorage.removeItem("username");
-              navigate("/login");
-            }}
-          >
+          <button className="btn-ghost" onClick={handleLogout}>
             Logout
           </button>
         </nav>
       </header>
 
-      {/* Main content area */}
-      <main className="container">{children}</main>
+      <main className="container">
+        {children || <Outlet />}
+      </main>
 
-      {/* Footer */}
       <footer className="app-footer">© {new Date().getFullYear()} StocksBoard</footer>
     </div>
   );
