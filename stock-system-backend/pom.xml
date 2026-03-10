@@ -100,6 +100,12 @@
 				<artifactId>aws-java-sdk-lambda</artifactId>
 				<version>1.12.796</version>
 		</dependency>
+		<!-- Logstash Logback Encoder for JSON logging -->
+		<dependency>
+				<groupId>net.logstash.logback</groupId>
+				<artifactId>logstash-logback-encoder</artifactId>
+				<version>7.4</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -47,5 +47,42 @@ services:
     depends_on:
       - backend
 
+  # Loki log aggregation
+  loki:
+    image: grafana/loki:latest
+    container_name: stock-system-loki-dev
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./logging-config/loki-config.yaml:/etc/loki/local-config.yaml
+      - loki-data:/loki
+    command: -config.file=/etc/loki/local-config.yaml
+
+  # Promtail log collector
+  promtail:
+    image: grafana/promtail:latest
+    container_name: stock-system-promtail-dev
+    volumes:
+      - ./logging-config/promtail-config.yaml:/etc/promtail/config.yaml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: -config.file=/etc/promtail/config.yaml
+
+  # Grafana dashboard
+  grafana:
+    image: grafana/grafana:latest
+    container_name: stock-system-grafana-dev
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./logging-config/grafana/provisioning:/etc/grafana/provisioning
+    depends_on:
+      - loki
+
 volumes:
   postgres-data:
+  grafana-data:
+  loki-data:
