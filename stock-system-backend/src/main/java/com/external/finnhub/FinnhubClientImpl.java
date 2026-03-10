@@ -61,7 +61,8 @@ public class FinnhubClientImpl implements FinnhubClient {
         Map<String, Double> result = new HashMap<>();
         String[] symbolList = symbols.split(",");
 
-        for (String symbol : symbolList) {
+        for (int i = 0; i < symbolList.length; i++) {
+            String symbol = symbolList[i];
             String trimmedSymbol = symbol.trim();
             if (trimmedSymbol.isEmpty()) {
                 continue;
@@ -72,6 +73,18 @@ public class FinnhubClientImpl implements FinnhubClient {
                 result.put(trimmedSymbol.toUpperCase(), price);
             } else {
                 log.warn("Failed to get price for symbol: {}", trimmedSymbol);
+            }
+
+            // Rate limiting for Finnhub free tier (60 requests per minute)
+            // Sleep for 1100ms between requests to stay under limit
+            if (i < symbolList.length - 1) {
+                try {
+                    Thread.sleep(1100);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    log.warn("Rate limiting sleep interrupted");
+                    break;
+                }
             }
         }
 
