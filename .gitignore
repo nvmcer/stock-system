@@ -33,6 +33,7 @@ bin/
 .project
 .settings/
 .classpath
+.attach_*
 
 # ============================
 # Node / React (frontend)

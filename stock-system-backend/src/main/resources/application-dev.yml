@@ -12,12 +12,28 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        "[format_sql]": false
 
   flyway:
     enabled: true
     locations: classpath:db/migration
  
+logging:
+  level:
+    "[org.hibernate.SQL]": DEBUG
+    "[org.hibernate.orm.jdbc.bind]": TRACE
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, prometheus
+  endpoint:
+    prometheus:
+      access: UNRESTRICTED
+  metrics:
+    tags:
+      application: stock-system-backend

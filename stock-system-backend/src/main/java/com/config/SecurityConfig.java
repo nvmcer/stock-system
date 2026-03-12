@@ -42,6 +42,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(authz -> authz
                         // Allow public access to authentication and error endpoints
                         .requestMatchers("/api/auth/**", "/error").permitAll()
+                        // Allow public access to actuator endpoints for monitoring
+                        .requestMatchers("/actuator/**").permitAll()
                         // All other requests require authentication
                         .anyRequest().authenticated()
                 )
