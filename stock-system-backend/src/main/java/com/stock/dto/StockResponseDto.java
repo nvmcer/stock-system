@@ -1,6 +1,7 @@
 package com.stock.dto;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
 public class StockResponseDto {
   
@@ -8,6 +9,7 @@ public class StockResponseDto {
     private String symbol;
     private String name;
     private BigDecimal price;
+    private LocalDateTime updatedAt;
 
     public Long getId() {
         return id;
@@ -39,5 +41,13 @@ public class StockResponseDto {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }

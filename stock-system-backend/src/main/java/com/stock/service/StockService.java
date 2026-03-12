@@ -145,6 +145,7 @@ public class StockService {
       dto.setSymbol(stock.getSymbol());
       dto.setName(stock.getName());
       dto.setPrice(stock.getPrice());
+      dto.setUpdatedAt(stock.getUpdatedAt());
       return dto;
     }
 

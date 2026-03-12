@@ -7,6 +7,7 @@ interface Stock {
   symbol: string;
   name: string;
   price: number;
+  updatedAt: string;
 }
 
 function AdminDashboard() {
@@ -91,10 +92,18 @@ function AdminDashboard() {
     }
   }
 
+  // Compute the latest update timestamp from stocks
+  const lastUpdatedTime = stocks.length > 0 
+    ? new Date(Math.max(...stocks.map(s => new Date(s.updatedAt).getTime()))).toLocaleString()
+    : 'Never';
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-        <h1>Admin Dashboard</h1>
+        <div>
+          <h1>Admin Dashboard</h1>
+          <small style={{ color: '#aaa' }}>Last updated: {lastUpdatedTime}</small>
+        </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="primary" onClick={() => navigate("/admin/users")}>👥 Manage Users</button>
           <button className="primary" onClick={updatePrices}>Update Prices</button>

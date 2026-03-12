@@ -1,7 +1,11 @@
 package com.stock.entity;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 
+import org.hibernate.annotations.UpdateTimestamp;
+
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -18,6 +22,10 @@ public class Stock {
     private String symbol;
     private String name;
     private BigDecimal price;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public Long getId() {
         return id;
@@ -49,5 +57,13 @@ public class Stock {
 
     public void setPrice(BigDecimal price) {
         this.price = price;
+    }
+
+    public LocalDateTime getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public void setUpdatedAt(LocalDateTime updatedAt) {
+        this.updatedAt = updatedAt;
     }
 }
