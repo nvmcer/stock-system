@@ -1,62 +1,48 @@
-📦 Stock System — Cloud Architecture
+📦 Stock System — Architecture
 
 🧭 Overview
 
-A fully cloud‑native, production‑ready stock management system deployed on AWS, built with a secure, scalable, and serverless‑first architecture.
-This cloud version replaces local Docker Compose orchestration with managed AWS services, enabling high availability, automatic scaling, and infrastructure-as-code provisioning.
+A production-ready stock portfolio management system, built with a modern, cost-effective cloud architecture.
 
-Core Components
-- Frontend: React + Vite (hosted on S3, delivered via CloudFront CDN)
-- Backend: Spring Boot API running on ECS Fargate
-- Market Data Fetcher: AWS Lambda (scheduled stock data ingestion)
-- Container Registry: Amazon ECR
-- Database: Amazon RDS (PostgreSQL, private subnet only)
-- Load Balancing: Application Load Balancer (ALB)
-- Networking: VPC with public/private subnets, SG‑based isolation
-- Infrastructure: Terraform (full IaC)
+> **Note:** The production architecture is currently in transition from AWS to the stack described below. The final architecture is not yet finalized.
 
-🏗️ System Architecture
+### Planned Production Stack
+- Frontend: React + Vite (hosted on Cloudflare Pages)
+- Backend: Spring Boot API (Hetzner VPS with Docker)
+- Database: Neon (Serverless PostgreSQL)
+- Market Data: Finnhub API (integrated directly into Spring Boot)
+- Infrastructure: Terraform (IaC)
+
+🏗️ System Architecture (Planned)
 
 ```mermaid
 flowchart TB
- subgraph Frontend["Frontend"]
+ subgraph Client["Client"]
         Browser["User Browser"]
-        CF["CloudFront<br>HTTPS + CDN"]
-        S3["S3 Bucket<br>Static Site (React + Vite)"]
   end
- subgraph PublicSubnet["Public Subnet"]
-        ALB["Application Load Balancer<br>Listener 80/443"]
-        ECS["ECS Service<br>Spring Boot API<br>Fargate + awsvpc<br>TargetGroup: IP"]
+ subgraph CDN["Cloudflare"]
+        CF["Cloudflare Pages<br>Static Site (React + Vite)<br>HTTPS + CDN"]
   end
- subgraph PrivateSubnet["Private Subnet"]
-        ECR["ECR<br>Container Registry"]
-        Lambda["Lambda<br>Scheduled Stock Fetch"]
-        RDS["RDS PostgreSQL<br>Private Only"]
-        Finnhub["Finnhub API<br>External Market Data"]
+ subgraph VPS["Hetzner VPS"]
+        Docker["Docker<br>Container Runtime"]
+        API["Spring Boot API<br>:8080"]
+        Scheduler["Stock Price Scheduler<br>Cron-based"]
   end
- subgraph Infrastructure["Infrastructure (Terraform Managed)"]
-        VPC["VPC<br>ap-northeast-1"]
-        SG["Security Groups"]
-        IAM["IAM Roles"]
-        TF["Terraform<br>Infrastructure as Code"]
+ subgraph DB["Managed Database"]
+        Neon["Neon PostgreSQL<br>Serverless"]
+  end
+ subgraph External["External APIs"]
+        Finnhub["Finnhub API<br>Market Data"]
   end
     Browser --> CF
-    CF --> S3
-    S3 -- API Call --> ALB
-    ALB -- Forward to TargetGroup --> ECS
-    ECS L_ECS_RDS_0@-- Write / Query --> RDS
-    ECS -- Invoke or Receive Data --> Lambda
-    Lambda -- Fetch Stock Data --> Finnhub
-    ECR --> ECS
-    Infrastructure --- PublicSubnet & PrivateSubnet
-    SG -. Protects .- ALB & ECS & RDS
-    IAM -. Assigned to .- ECS & Lambda
-    TF -. Manages .- VPC & ECS & ALB & Lambda & RDS & ECR
+    CF -- API Requests --> API
+    Docker --- API & Scheduler
+    API -- Read / Write --> Neon
+    API -- Fetch Prices --> Finnhub
+    Scheduler -- Update Prices --> API
 
-     Infrastructure:::infra
-    classDef infra fill:#F9F9F9,stroke:#bbb
-
-    L_ECS_RDS_0@{ curve: natural }
+    Client:::client
+    classDef client fill:#f0f0f0,stroke:#bbb
 ```
 
 👉 Stock System — Full Stack Architecture
@@ -70,10 +56,10 @@ It includes a Docker Compose–based architecture, service wiring, environment v
 🧭 Overview
 
 A fully containerized multi-service stock management system built with:
-- Frontend: Vite
-- Backend: Spring Boot
-- Market Data Service: FastAPI
+- Frontend: React + Vite + TypeScript
+- Backend: Spring Boot (includes Finnhub market data integration)
 - Database: PostgreSQL
+- Observability: Grafana + Loki + Prometheus + Alloy
 - Orchestration: Docker Compose
 - Automation: Makefile
 This project is designed for clean architecture, easy onboarding, and production-ready deployment.
@@ -82,70 +68,62 @@ This project is designed for clean architecture, easy onboarding, and production
 
 ```mermaid
 flowchart TB
- subgraph FE["Frontend (Vite Server 5173)"]
-        FE1["Calls<br/>Backend API"]
+ subgraph FE["Frontend (Vite Dev Server :5173)"]
+        FE1["React SPA<br/>Calls Backend API"]
   end
- subgraph BE["Backend (Spring Boot 8080)"]
+ subgraph BE["Backend (Spring Boot :8080)"]
         BE1["Business Logic"]
-        BE2["Calls<br/>FastAPI"]
-        BE3["Stores data<br/>in DB"]
+        BE2["Finnhub Client<br/>Fetches Market Data"]
+        BE3["JPA Repositories<br/>Stores data in DB"]
   end
- subgraph FA["Market Data API (FastAPI 8001)"]
-        FA1["Fetches<br/>External Data"]
-        FA2["Returns Data<br/>to Backend"]
-        FA3["No DB Access"]
+ subgraph EXT["External APIs"]
+        EXT1["Finnhub API<br/>Stock Market Data"]
   end
  subgraph DB["PostgreSQL Database"]
         DB1["Accessed only by<br/>Spring Boot Backend"]
   end
-    FE1 L_FE1_BE1_0@--> BE1
+    FE1 --> BE1
     BE1 --> BE2 & BE3
-    BE2 --> FA1
-    FA1 --> FA2
+    BE2 --> EXT1
     BE3 --> DB1
 
     FE1@{ shape: rect}
     BE1@{ shape: rect}
     BE2@{ shape: rect}
     BE3@{ shape: rect}
-    FA1@{ shape: rect}
-    FA2@{ shape: rect}
-    FA3@{ shape: rect}
+    EXT1@{ shape: rect}
     DB1@{ shape: cyl}
-
-    L_FE1_BE1_0@{ curve: natural }
 ```
 
 📁 Project Structure
 ```
 stock-system/
 │
-├── stock-system-frontend/       # Vite frontend
+├── stock-system-frontend/       # React + TypeScript + Vite frontend
 │   ├── src/
 │   ├── public/
 │   ├── .env.example
-│   ├── vite.config.js
+│   ├── vite.config.ts
 │   └── Dockerfile
 │
-├── stock-system-backend/        # Spring Boot backend
+├── stock-system-backend/        # Spring Boot backend (includes Finnhub integration)
 │   ├── src/main/java
 │   ├── src/main/resources
 │   ├── pom.xml
 │   └── Dockerfile
 │
-├── stock-system-marketdata/     # FastAPI service
-│   ├── app/
-│   ├── requirements.txt
-│   └── Dockerfile
-│
-├── stock-system-infra/          # terraform
+├── stock-system-infra/          # Terraform infrastructure as code
 │   ├── modules/
 │   ├── main.tf
-│   └── providers.tf
+│   ├── providers.tf
 │   └── variables.tf
+│
+├── logging-config/              # Observability configs (Grafana, Loki, Prometheus)
 │
 ├── docker-compose.dev.yml       # Dev environment
 ├── Makefile                     # Automation commands
+├── AGENTS.md                    # AI assistant guidelines
+├── STYLE_GUIDE.md               # API and code standards
 └── README.md
 ```
 

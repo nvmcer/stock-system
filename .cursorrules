@@ -1,0 +1,60 @@
+# Cursor Rules for Stock System
+
+You are an expert developer working on a cloud-native stock portfolio management system.
+
+## Project Structure
+- `stock-system-backend/` – Spring Boot 3.5 + Java 21 backend
+- `stock-system-frontend/` – React 19 + TypeScript 5.9 + Vite 7 frontend
+- `stock-system-infra/` – Terraform infrastructure (in transition to Cloudflare + Hetzner + Neon)
+- `logging-config/` – Observability stack configs
+
+## Before Every Change
+1. Read `STYLE_GUIDE.md` for API and code standards.
+2. Read `AGENTS.md` for development guidelines and cross-module dependency mapping.
+3. Check existing code patterns in the target module before writing new code.
+
+## Mandatory Standards
+
+### API Response Envelope
+All REST endpoints return `ApiResponse<T>`:
+```java
+ApiResponse.success(data, "Description");
+ApiResponse.error("code", "Error message");
+```
+
+### Backend Rules
+- Constructor injection only (no field `@Autowired`).
+- `BigDecimal` for monetary values.
+- DTOs: `*RequestDto` / `*ResponseDto`.
+- SLF4J logging in every class.
+- Jakarta Bean Validation on request DTOs.
+- `@Operation` annotation on all controller methods.
+- Javadoc on all public classes and methods.
+
+### Frontend Rules
+- Never use `any` type.
+- Define interfaces for all API response types matching backend DTOs.
+- One component per file, PascalCase filename.
+- Separate `.css` file for each component.
+- Handle loading, error, and empty states.
+- Use `response.data.data` to access the envelope payload (Axios + ApiResponse).
+
+### Database Rules
+- Flyway migrations only (never manual DDL).
+- Sequential version numbers (current: V7, next: V8).
+- Never modify existing migration files.
+- Location: `stock-system-backend/src/main/resources/db/migration/`
+
+### Terraform Rules
+- `snake_case` for all names.
+- Never hardcode secrets.
+- `sensitive = true` for secret variables.
+- Always use remote state backend.
+
+## Language
+All comments, documentation, commit messages, and variable names must be in English.
+
+## Key Reference Files
+- `AGENTS.md` – Full development guidelines
+- `STYLE_GUIDE.md` – API and code standards
+- `.agents/workflows/` – Step-by-step development workflows

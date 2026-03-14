@@ -81,6 +81,16 @@ stock-system-marketdata/.env
 .terraform/
 
 # ============================
-# AI files
 # ============================
-*.aider.*
+# AI tools (generated/cache)
+# ============================
+.aider.chat.history.md
+.aider.input.history
+.aider.tags.cache.v4/
+
+# Note: The following AI config files ARE tracked (do not ignore):
+# .cursorrules
+# .github/copilot-instructions.md
+# .agents/workflows/
+# AGENTS.md
+# STYLE_GUIDE.md
