@@ -1,4 +1,4 @@
-import React, { useEffect, useState, type ReactNode } from "react";
+import React, { type ReactNode } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
 import "./Layout.css";
 
@@ -8,37 +8,21 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(true);
-  const [role, setRole] = useState<string | null>(null);
-  const [username, setUsername] = useState<string | null>(null);
+  const token = localStorage.getItem("token");
+  const userRole = localStorage.getItem("role");
+  const user = localStorage.getItem("username");
+  const isAuthenticated = token && token !== "undefined" && token !== "null" && token.length > 0;
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userRole = localStorage.getItem("role");
-    const user = localStorage.getItem("username");
-
-    // Check if token exists and is valid (not "undefined" or null)
-    if (!token || token === "undefined" || token === "null") {
-      // Token is missing or invalid - redirect to login
-      localStorage.clear();
-      navigate("/login");
-      setIsAuthenticated(false);
-      return;
-    }
-
-    setRole(userRole);
-    setUsername(user);
-    setIsAuthenticated(true);
-  }, [navigate]);
+  if (!isAuthenticated) {
+    localStorage.clear();
+    navigate("/login");
+    return null;
+  }
 
   const handleLogout = () => {
     localStorage.clear();
     navigate("/login");
   };
-
-  if (!isAuthenticated) {
-    return null; // or a loading spinner
-  }
 
   return (
     <div className="app-shell">
@@ -46,7 +30,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div
           className="brand"
           onClick={() =>
-            navigate(role === "ROLE_ADMIN" ? "/admin/dashboard" : "/user/dashboard")
+            navigate(userRole === "ROLE_ADMIN" ? "/admin/dashboard" : "/user/dashboard")
           }
         >
           StocksBoard
@@ -57,7 +41,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           
           <div className="user">
             <span style={{ fontSize: '0.85rem', color: 'var(--muted)', marginRight: '6px' }}>👤</span>
-            <strong style={{ color: '#e6eef8' }}>{username || "Guest"}</strong>
+            <strong style={{ color: '#e6eef8' }}>{user || "Guest"}</strong>
           </div>
           
           <button className="btn-ghost" onClick={handleLogout}>

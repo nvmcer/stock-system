@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm"
+    xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm
+    https://jakarta.ee/xml/ns/persistence/orm/orm_3_0.xsd"
+    version="3.0">
+    
+    <package>com.user.entity</package>
+    <entity class="com.user.entity.User" />
+    
+    <package>com.stock.entity</package>
+    <entity class="com.stock.entity.Stock" />
+    
+    <package>com.portfolio.entity</package>
+    <entity class="com.portfolio.entity.Portfolio" />
+    
+    <package>com.trades.entity</package>
+    <entity class="com.trades.entity.Trade" />
+    
+</entity-mappings>

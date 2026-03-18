@@ -1,15 +1,11 @@
 package com.external.finnhub;
 
-import java.time.Duration;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.web.client.RestTemplateBuilder;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -25,11 +21,8 @@ public class FinnhubClientImpl implements FinnhubClient {
 
     private final RestTemplate restTemplate;
 
-    public FinnhubClientImpl(RestTemplateBuilder builder) {
-        this.restTemplate = builder
-                .connectTimeout(Duration.ofSeconds(5))
-                .readTimeout(Duration.ofSeconds(10))
-                .build();
+    public FinnhubClientImpl() {
+        this.restTemplate = new RestTemplate();
     }
 
     @Override
@@ -79,7 +72,7 @@ public class FinnhubClientImpl implements FinnhubClient {
             // Sleep for 1100ms between requests to stay under limit
             if (i < symbolList.length - 1) {
                 try {
-                    Thread.sleep(1100);
+                    sleepBetweenRequests();
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                     log.warn("Rate limiting sleep interrupted");
@@ -91,7 +84,11 @@ public class FinnhubClientImpl implements FinnhubClient {
         return result;
     }
 
-    private static class FinnhubQuoteResponse {
+    protected void sleepBetweenRequests() throws InterruptedException {
+        Thread.sleep(1100);
+    }
+
+    static class FinnhubQuoteResponse {
         private Double c;  // Current price
         private Double d;  // Change
         private Double dp; // Percent change

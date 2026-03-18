@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import type { Trade } from "../services/types";
 
 function TradesPage() {
-  const [trades, setTrades] = useState<any[]>([]);
+  const [trades, setTrades] = useState<Trade[]>([]);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
@@ -19,14 +20,14 @@ function TradesPage() {
         const res = await api.get(`/api/trades/history?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Handle ApiResponse envelope
         if (res.data.success) {
           setTrades(res.data.data || []);
         } else {
           alert("Failed to get Trade History: " + res.data.message);
         }
-      } catch (err: any) {
-        alert("Failed to get Trade History: " + (err.response?.data?.message || err.message));
+      } catch (err) {
+        const error = err as { response?: { data?: { message?: string } }, message?: string };
+        alert("Failed to get Trade History: " + (error.response?.data?.message || error.message));
       }
     };
     if (userId) fetchTrades();
@@ -47,7 +48,7 @@ function TradesPage() {
             </tr>
           </thead>
           <tbody>
-            {trades.map((t: any) => (
+            {trades.map((t) => (
               <tr key={t.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <td style={{ padding: '12px' }}>{new Date(t.timestamp).toLocaleString()}</td>
                 <td style={{ padding: '12px' }}><strong>{t.stockSymbol}</strong></td>

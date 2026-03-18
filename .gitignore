@@ -45,6 +45,10 @@ stock-system-frontend/.cache/
 stock-system-frontend/npm-debug.log
 stock-system-frontend/yarn-error.log
 
+# Playwright test artifacts (generated)
+stock-system-frontend/playwright-report/
+stock-system-frontend/test-results/
+
 # ============================
 # Python / FastAPI
 # ============================
@@ -87,6 +91,7 @@ stock-system-marketdata/.env
 .aider.chat.history.md
 .aider.input.history
 .aider.tags.cache.v4/
+opencode.json
 
 # Note: The following AI config files ARE tracked (do not ignore):
 # .cursorrules

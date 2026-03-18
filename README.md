@@ -138,7 +138,6 @@ make dev
 
 🔧 Environment Variables
 - Frontend (.env.example)
-- VITE_MARKETDATA_API_URL=http://localhost:8001
 - VITE_API_BASE=http://localhost:8080
 - VITE_APP_ENV=development
 
@@ -149,7 +148,6 @@ Developers copy:
 
 Dev Mode
 - Hot reload for frontend
-- Hot reload for FastAPI
 - Spring Boot dev mode
 - Bind mounts for all services
 

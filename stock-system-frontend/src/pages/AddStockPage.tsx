@@ -27,8 +27,9 @@ function AddStockPage() {
       } else {
         alert("Failed to add stock: " + res.data.message);
       }
-    } catch (err: any) {
-      alert("Failed to add stock: " + (err.response?.data?.message || err.message));
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      alert("Failed to add stock: " + (error.response?.data?.message || error.message));
     }
   };
 

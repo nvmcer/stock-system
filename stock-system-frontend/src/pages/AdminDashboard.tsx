@@ -12,6 +12,7 @@ interface Stock {
 
 function AdminDashboard() {
   const [stocks, setStocks] = useState<Stock[]>([]);
+  const [isUpdating, setIsUpdating] = useState(false);
   const navigate = useNavigate();
 
   // List of stocks
@@ -34,6 +35,7 @@ function AdminDashboard() {
       }
     })
     .catch(err => console.error("Failed to fetch stocks:", err));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Delete stock
@@ -48,15 +50,19 @@ function AdminDashboard() {
       } else {
         alert("Failed to delete: " + res.data.message);
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error("Delete failed:", err);
-      alert("Failed to delete: " + (err.response?.data?.message || err.message));
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      alert("Failed to delete: " + (error.response?.data?.message || error.message));
     }
   };
 
   // Update prices to latest
   async function updatePrices() {
     const token = localStorage.getItem("token");
+    setIsUpdating(true);
+    // Give React a moment to render before starting the API call
+    await new Promise(resolve => setTimeout(resolve, 10));
 
     try {
       // Call backend to update prices from market data service
@@ -71,7 +77,7 @@ function AdminDashboard() {
       );
 
       if (res.data.success) {
-        alert(res.data.message || "Prices updated successfully");
+        setTimeout(() => alert(res.data.message || "Prices updated successfully"), 0);
         
         // Fetch updated stock prices from server
         const updatedStocks = await api.get("/api/stocks", {
@@ -82,13 +88,16 @@ function AdminDashboard() {
         if (updatedStocks.data.success) {
           setStocks(updatedStocks.data.data || []);
         }
-        alert("Stock prices refreshed!");
+        setTimeout(() => alert("Stock prices refreshed!"), 0);
       } else {
-        alert("Failed to update prices: " + res.data.message);
+        setTimeout(() => alert("Failed to update prices: " + res.data.message), 0);
       }
-    } catch (err: any) {
+      setIsUpdating(false);
+    } catch (err) {
       console.error("Price update failed:", err);
-      alert("Failed to update prices: " + (err.response?.data?.message || err.message));
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      setTimeout(() => alert("Failed to update prices: " + (error.response?.data?.message || error.message)), 0);
+      setIsUpdating(false);
     }
   }
 
@@ -106,7 +115,9 @@ function AdminDashboard() {
         </div>
         <div style={{ display: 'flex', gap: '8px' }}>
           <button className="primary" onClick={() => navigate("/admin/users")}>👥 Manage Users</button>
-          <button className="primary" onClick={updatePrices}>Update Prices</button>
+          <button className="primary" onClick={updatePrices} disabled={isUpdating}>
+            {isUpdating ? "Updating..." : "Update Prices"}
+          </button>
           <button className="primary" onClick={() => navigate("/admin/add")}>+ Add Stock</button>
         </div>
       </div>

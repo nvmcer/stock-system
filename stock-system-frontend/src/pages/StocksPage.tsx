@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import type { Stock } from "../services/types";
 
 function StocksPage() {
-  const [stocks, setStocks] = useState<any[]>([]);
+  const [stocks, setStocks] = useState<Stock[]>([]);
   const [quantities, setQuantities] = useState<{ [key: string]: number }>({});
   const [prices, setPrices] = useState<{ [key: string]: number }>({});
   const navigate = useNavigate();
@@ -21,14 +22,14 @@ function StocksPage() {
         const res = await api.get("/api/stocks", {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Handle ApiResponse envelope
         if (res.data.success) {
           setStocks(res.data.data || []);
         } else {
           alert("Failed to get Stock List: " + res.data.message);
         }
-      } catch (err: any) {
-        alert("Failed to get Stock List: " + (err.response?.data?.message || err.message));
+      } catch (err) {
+        const error = err as { response?: { data?: { message?: string } }, message?: string };
+        alert("Failed to get Stock List: " + (error.response?.data?.message || error.message));
       }
     };
     fetchStocks();
@@ -45,8 +46,9 @@ function StocksPage() {
       } else {
         alert("Failed to buy: " + res.data.message);
       }
-    } catch (err: any) {
-      alert("Failed to buy: " + (err.response?.data?.message || err.message));
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      alert("Failed to buy: " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -61,8 +63,9 @@ function StocksPage() {
       } else {
         alert("Failed to sell: " + res.data.message);
       }
-    } catch (err: any) {
-      alert("Failed to sell: " + (err.response?.data?.message || err.message));
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      alert("Failed to sell: " + (error.response?.data?.message || error.message));
     }
   };
 
@@ -82,7 +85,7 @@ function StocksPage() {
             </tr>
           </thead>
           <tbody>
-            {stocks.map((s: any) => (
+            {stocks.map((s) => (
               <tr key={s.symbol} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)', height: '50px', verticalAlign: 'middle' }}>
                 <td style={{ padding: '12px', verticalAlign: 'middle' }}><strong>{s.symbol}</strong></td>
                 <td style={{ padding: '12px', verticalAlign: 'middle' }}>{s.name}</td>

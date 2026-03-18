@@ -4,7 +4,7 @@ Build commands, code style, and conventions for agentic coding assistants.
 
 ## Project Structure
 
-- `stock-system-backend/` – Spring Boot 3.5 + Java 21 backend (includes Finnhub market data integration)
+- `stock-system-backend/` – Spring Boot 4.0.3 + Java 21 backend (includes Finnhub market data integration)
 - `stock-system-frontend/` – React 19 + TypeScript 5.9 + Vite 7 frontend
 - `stock-system-infra/` – Terraform infrastructure as code (architecture in transition)
 - `logging-config/` – Observability configs (Grafana, Loki, Prometheus, Alloy)

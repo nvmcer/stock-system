@@ -2,7 +2,6 @@ package com.stock.scheduler;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -14,7 +13,6 @@ public class StockPriceScheduler {
 
     private final StockService stockService;
 
-    @Autowired
     public StockPriceScheduler(StockService stockService) {
         this.stockService = stockService;
     }

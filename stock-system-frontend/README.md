@@ -5,7 +5,7 @@ This module is the frontend application of the Stock System.
 It provides:
 - A modern UI built with Vite
 - Integration with the Spring Boot backend
-- Integration with the FastAPI market data service (via backend)
+- Integration with Finnhub market data (via backend)
 - Hot-reload development environment
 - Production-ready static build
 The frontend does not access the database directly.
@@ -25,16 +25,16 @@ All data flows through the backend.
 │        Backend           │
 │     Spring Boot (8080)   │
 │  → Business Logic        │
-│  → Calls FastAPI         │
+│  → Fetches Market Data   │
 │  → Stores data in DB     │
 └─────────────┬────────────┘
               │
               ▼
 ┌──────────────────────────┐
-│     Market Data API      │
-│       FastAPI (8001)     │
-│  → Fetches external data │
-│  → Returns to Backend    │
+│     External APIs        │
+│       Finnhub API        │
+│  → Real-time stock data  │
+│  → Company information   │
 └──────────────────────────┘
 ```
 ---
@@ -45,13 +45,17 @@ stock-system-frontend/
 ├── src/                    # Frontend source code
 │   ├── components/
 │   ├── pages/
-│   ├── api/
-│   └── main.js / main.ts
+│   ├── services/
+│   ├── assets/
+│   ├── App.tsx
+│   ├── App.css
+│   ├── index.css
+│   └── main.tsx
 │
 ├── public/                 # Static assets
 ├── .env.example            # Environment variable template
 ├── package.json
-├── vite.config.js
+├── vite.config.ts
 └── README.md
 ```
 ---
@@ -75,7 +79,6 @@ Frontend will start at:
 The frontend uses Vite’s environment system.
 
 .env.example
-- VITE_MARKETDATA_API_URL = http://localhost:8001
 - VITE_API_BASE = http://localhost:8080
 - VITE_APP_ENV = development
 
@@ -100,21 +103,21 @@ In production Docker mode, the frontend is built and served by the backend or Ng
 Backend API
 
 All business logic and DB operations go through:
-- VITE_BACKEND_API_URL
+- VITE_API_BASE (e.g., http://localhost:8080)
 
 Example:
 
-const res = await fetch(`${import.meta.env.VITE_BACKEND_API_URL}/api/stocks`);
+const res = await fetch(`${import.meta.env.VITE_API_BASE}/api/stocks`);
 
-Market Data API
+Market Data Integration
 
-Frontend does not call FastAPI directly in your architecture.
+Frontend does not call external APIs directly. All market data is fetched by the backend via Finnhub API.
 
 Backend handles:
-- Fetching market data
-- Processing
-- Storing
-- Returning unified responses
+- Fetching real-time market data from Finnhub
+- Processing and validation
+- Storing in database
+- Returning unified API responses
 
 ---
 🧪 Testing
@@ -127,12 +130,17 @@ npm run test
 Included in docker-compose.dev.yml:
 ```
 frontend:
-  build: ./stock-system-frontend
+  image: node:25
   container_name: stock-system-frontend-dev
-  ports:
-    - "3001:5173"
+  working_dir: /app
   volumes:
     - ./stock-system-frontend:/app
-  command: npm run dev -- --host
-  ```
+  command: >
+    sh -c "npm install &&
+          npm run dev -- --host"
+  ports:
+    - "3001:5173"
+  depends_on:
+    - backend
+```
 ---

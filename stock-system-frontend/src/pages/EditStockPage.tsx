@@ -45,8 +45,9 @@ function EditStockPage() {
       } else {
         alert("Failed to update stock: " + res.data.message);
       }
-    } catch (err: any) {
-      alert("Failed to update stock: " + (err.response?.data?.message || err.message));
+    } catch (err) {
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      alert("Failed to update stock: " + (error.response?.data?.message || error.message));
     }
   };
 

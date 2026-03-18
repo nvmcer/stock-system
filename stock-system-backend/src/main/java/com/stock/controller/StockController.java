@@ -2,7 +2,6 @@ package com.stock.controller;
 
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -26,7 +25,6 @@ public class StockController {
     private final StockService stockService;
     private final PriceUpdateService priceUpdateService;
 
-    @Autowired
     public StockController(StockService stockService, PriceUpdateService priceUpdateService) {
         this.stockService = stockService;
         this.priceUpdateService = priceUpdateService;

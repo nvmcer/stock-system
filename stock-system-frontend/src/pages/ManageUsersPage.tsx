@@ -54,9 +54,10 @@ function ManageUsersPage() {
       // Remove deleted user from state
       setUsers(users.filter(user => user.id !== id));
       alert("User and all related records deleted successfully");
-    } catch (err: any) {
+    } catch (err) {
       console.error("Delete failed:", err);
-      alert("Failed to delete user: " + (err.response?.data?.message || err.message));
+      const error = err as { response?: { data?: { message?: string } }, message?: string };
+      alert("Failed to delete user: " + (error.response?.data?.message || error.message));
     }
   };
 

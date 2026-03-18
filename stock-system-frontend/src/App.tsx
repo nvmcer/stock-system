@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from "react-router-dom";
-import { useEffect, useState } from "react";
 import LoginPage from "./pages/LoginPage";
 import RegisterPage from "./pages/RegisterPage";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -16,14 +15,11 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Redirect root to login */}
         <Route path="/" element={<Navigate to="/login" />} />
         
-        {/* Public pages */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         
-        {/* Protected routes with Layout */}
         <Route element={<AuthLayout />}>
           <Route path="/admin/dashboard" element={<AdminDashboard />} />
           <Route path="/admin/add" element={<AddStockPage />} />
@@ -35,7 +31,6 @@ function App() {
           <Route path="/user/trades" element={<TradesPage />} />
         </Route>
         
-        {/* Catch all - redirect to login */}
         <Route path="*" element={<Navigate to="/login" />} />
       </Routes>
     </Router>
@@ -43,20 +38,8 @@ function App() {
 }
 
 function AuthLayout() {
-  const [isValid, setIsValid] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token && token !== "undefined" && token !== "null" && token.length > 0) {
-      setIsValid(true);
-    } else {
-      setIsValid(false);
-    }
-  }, []);
-
-  if (isValid === null) {
-    return <div>Loading...</div>;
-  }
+  const token = localStorage.getItem("token");
+  const isValid = token && token !== "undefined" && token !== "null" && token.length > 0;
 
   if (!isValid) {
     return <Navigate to="/login" replace />;

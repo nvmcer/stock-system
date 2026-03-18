@@ -13,6 +13,9 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: false
+    open-in-view: false
+    mapping-resources: 
+      - META-INF/orm.xml
     properties:
       hibernate:
         "[format_sql]": false

@@ -2,7 +2,6 @@ package com.user.controller;
 
 import java.util.Map;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -21,7 +20,6 @@ import com.user.service.UserService;
 @RequestMapping("/api/auth")
 public class AuthController {
 
-    @Autowired
     private final UserService userService;
 
     private final JwtUtil jwtUtil = new JwtUtil();

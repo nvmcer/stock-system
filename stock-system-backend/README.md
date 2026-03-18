@@ -6,7 +6,7 @@ It handles:
 - Business logic
 - Data validation
 - Database read/write
-- Integration with the FastAPI Market Data service
+- Integration with Finnhub API for market data
 - Providing REST APIs to the frontend
 This service is the only component that interacts with PostgreSQL.
 ```
@@ -21,7 +21,7 @@ This service is the only component that interacts with PostgreSQL.
 │        Backend           │
 │     Spring Boot (8080)   │
 │  → Business Logic        │
-│  → Calls FastAPI         │
+│  → Fetches Market Data   │
 │  → Stores data in DB     │
 └─────────────┬────────────┘
               │
@@ -89,25 +89,34 @@ Example
 
 Market Data Integration
 
-Backend calls FastAPI service:
-- GET http://stock-system-marketdata:8001/marketdata/{symbol}
+Backend integrates directly with Finnhub API:
+- Real-time stock prices and company information
+- Configured via FINNHUB_API_KEY environment variable
+- Scheduled price updates via internal scheduler
 
-Then:
-- Processes the data
-- Stores it in PostgreSQL
+Data flow:
+- Fetches market data from Finnhub API
+- Processes and validates the data
+- Stores in PostgreSQL database
 - Returns unified response to frontend
 ---
 🐳 Docker (Dev)
 Backend is included in docker-compose.dev.yml:
 ```
 backend:
-  build: ./stock-system-backend
+  image: eclipse-temurin:21-jdk
   container_name: stock-system-backend-dev
-  ports:
-    - "8080:8080"
+  working_dir: /app
   volumes:
     - ./stock-system-backend:/app
-  command: mvn spring-boot:run
+    - ~/.m2:/root/.m2
+  command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8787"
+  ports:
+    - "8080:8080"
+    - "8787:8787"
+  environment:
+    SPRING_PROFILES_ACTIVE: dev
+    FINNHUB_API_KEY: ${FINNHUB_API_KEY}
   depends_on:
     - postgres
 ```

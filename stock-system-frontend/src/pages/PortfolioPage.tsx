@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import type { PortfolioItem } from "../services/types";
 
 function PortfolioPage() {
-  const [portfolio, setPortfolio] = useState<any[]>([]);
+  const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
   const navigate = useNavigate();
   const token = localStorage.getItem("token");
   const userId = localStorage.getItem("userId");
@@ -23,14 +24,14 @@ function PortfolioPage() {
         const res = await api.get(`/api/portfolio?userId=${userId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
-        // Handle ApiResponse envelope
         if (res.data.success) {
           setPortfolio(res.data.data || []);
         } else {
           alert("Failed to get portfolio: " + res.data.message);
         }
-      } catch (err: any) {
-        alert("Failed to get portfolio: " + (err.response?.data?.message || err.message));
+      } catch (err) {
+        const error = err as { response?: { data?: { message?: string } }, message?: string };
+        alert("Failed to get portfolio: " + (error.response?.data?.message || error.message));
       }
     };
     if (userId) fetchPortfolio();
@@ -59,7 +60,7 @@ function PortfolioPage() {
             </tr>
           </thead>
           <tbody>
-            {portfolio.map((p: any) => (
+            {portfolio.map((p) => (
               <tr key={p.symbol} style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
                 <td style={{ padding: '12px' }}><strong>{p.symbol}</strong></td>
                 <td style={{ padding: '12px' }}>{p.name}</td>

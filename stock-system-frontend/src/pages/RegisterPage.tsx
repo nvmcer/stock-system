@@ -51,9 +51,9 @@ function RegisterPage() {
       } else {
         navigate("/user/dashboard");
       }
-    } catch (err: any) {
-      // Handle both wrapped and unwrapped error responses
-      const errorMessage = err.response?.data?.data?.message || err.response?.data?.message || err.message;
+    } catch (err) {
+      const error = err as { response?: { data?: { data?: { message?: string }, message?: string } }, message?: string };
+      const errorMessage = error.response?.data?.data?.message || error.response?.data?.message || error.message;
       alert("Registration failed: " + errorMessage);
     }
   };
