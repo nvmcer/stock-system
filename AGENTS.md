@@ -1,6 +1,6 @@
-# AGENTS.md – Stock System Development Guidelines
+# AGENTS.md – Stock System Project Constraints
 
-Build commands, code style, and conventions for agentic coding assistants.
+Project-specific constraints and conventions that complement Superpowers skills.
 
 ## Project Structure
 
@@ -11,62 +11,7 @@ Build commands, code style, and conventions for agentic coding assistants.
 - Root `docker-compose.dev.yml` – Local development environment
 - Root `Makefile` – Common automation commands
 
-## AI Agent Roles
-
-### Architect
-- Role: Senior System Architect & AI Coordination Lead
-- Capability: Project analysis, standard setting, cross-module impact analysis, consistency checking.
-- Instructions:
-  1. Always read `STYLE_GUIDE.md` before suggesting code changes.
-  2. When modifying shared interfaces (API contracts, DTOs), verify both frontend and backend consistency.
-  3. Consult `stock-system-backend/src/main/resources/db/migration/` before proposing schema changes.
-  4. Validate all changes against the unified `ApiResponse<T>` envelope format.
-
-### Refactor_Bot
-- Role: Code Refactoring Specialist
-- Capability: Applying patterns, adding Javadoc/type hints, fixing anti-patterns.
-- Instructions:
-  1. Preserve existing import grouping and Lombok usage in Java.
-  2. Keep CSS in separate `.css` files for React components.
-  3. Never introduce `any` types in TypeScript.
-
-### Code_Reviewer
-- Role: Automated Code Review Agent
-- Capability: Pre-commit validation, style enforcement, dependency audit.
-- Instructions:
-  1. Run `npm run lint` for all frontend changes.
-  2. Run `./mvnw test -f stock-system-backend/pom.xml` for all backend changes.
-  3. Verify new API endpoints conform to `ApiResponse<T>` envelope.
-
-## AI Agent Behavioral Constraints
-
-### Mandatory Pre-Checks
-Before making any code change, AI agents MUST:
-1. Read `STYLE_GUIDE.md` for API standards.
-2. Check existing code patterns in the target module.
-3. Verify Flyway migration sequence – current latest: `V7__add_realizedPnl_to_portfolio.sql`.
-4. Run `npm run lint` for frontend changes.
-5. Run `./mvnw test -f stock-system-backend/pom.xml` for backend changes.
-
-### Prohibited Actions
-- Never modify the `ApiResponse<T>` envelope structure without explicit approval.
-- Never add new dependencies without documenting rationale in the commit message.
-- Never create API endpoints outside the `/api/` prefix.
-- Never store secrets in code files – use environment variables.
-- Never create Flyway migrations with gaps in version numbers.
-- Never use `any` type in TypeScript.
-- Never commit `.env`, `terraform.tfvars`, or `*.tfstate` files.
-- Never modify existing Flyway migration files – always create new ones.
-
-### Code Generation Requirements
-- All new Java classes must include an SLF4J logger: `private static final Logger log = LoggerFactory.getLogger(ClassName.class);`
-- All new REST endpoints must return `ApiResponse<T>`.
-- All new React components must have a corresponding `.css` file.
-- All DTO classes must follow `*RequestDto` / `*ResponseDto` naming.
-- All new entities must have a corresponding Flyway migration.
-- All controller methods must be annotated with `@Operation` (SpringDoc OpenAPI).
-
-## Cross-Module Dependency Map
+## Project Constraints
 
 ### API Contract Flow
 ```
@@ -218,16 +163,5 @@ Required: Comment header with purpose and date, idempotent where possible
 - **Prometheus** (port 9090): Metrics collection from Spring Boot Actuator + Micrometer.
 - **Alloy** (port 12345): Log collection agent forwarding Docker container logs to Loki.
 
-## Notes for AI Assistants
-
-- Maintain existing import grouping and Lombok usage in Java.
-- Keep CSS in separate `.css` files for React components.
-- All API responses must use unified `ApiResponse<T>` envelope (see `STYLE_GUIDE.md`).
-- Run `npm run lint` for frontend changes; fix ESLint errors before committing.
-- Run `./mvnw test` for backend changes; fix test failures before committing.
-- Never commit secrets (`.env`, `terraform.tfvars`, `*.tfstate`).
-- When unsure about a pattern, check existing code in the same module first.
-- Use English for all code comments, Javadoc, commit messages, and documentation.
-
 ---
-*Last updated: 2026-03-14*
+*Last updated: 2026-03-18*

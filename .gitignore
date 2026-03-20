@@ -99,3 +99,7 @@ opencode.json
 # .agents/workflows/
 # AGENTS.md
 # STYLE_GUIDE.md
+
+# Production deployment reports (generated, not tracked)
+ARCHITECTURE_AND_MIGRATION_REPORT_*.md
+PRODUCTION_DEPLOYMENT_TASKLIST.md
