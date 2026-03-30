@@ -25,6 +25,15 @@ public class FinnhubClientImpl implements FinnhubClient {
         this.restTemplate = new RestTemplate();
     }
 
+    /**
+     * Constructor for dependency injection (used in tests).
+     * 
+     * @param restTemplate the RestTemplate instance to use
+     */
+    public FinnhubClientImpl(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+    }
+
     @Override
     public Double getQuote(String symbol) {
         try {

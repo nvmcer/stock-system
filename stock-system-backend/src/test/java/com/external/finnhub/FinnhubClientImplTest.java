@@ -27,7 +27,7 @@ class FinnhubClientImplTest {
 
     @BeforeEach
     void setUp() throws Exception {
-        finnhubClient = new FinnhubClientImpl();
+        finnhubClient = new FinnhubClientImpl(restTemplate);
 
         Field apiKeyField = FinnhubClientImpl.class.getDeclaredField("apiKey");
         apiKeyField.setAccessible(true);
