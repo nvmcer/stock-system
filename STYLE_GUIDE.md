@@ -5,7 +5,7 @@ This document defines the unified API response format, frontend code standards, 
 ## Architecture
 
 ### Services
-- **Backend (stock-system-backend):** Spring Boot 3.5 + Java 21
+- **Backend (stock-system-backend):** Spring Boot 4.0.3 + Java 25
 - **Frontend (stock-system-frontend):** React 19 + TypeScript 5.9 + Vite 7
 - **Infrastructure (stock-system-infra):** Terraform (architecture in transition)
 - **Observability:** Grafana Alloy, Loki, Prometheus, Grafana (Docker Compose)

@@ -15,7 +15,7 @@ services:
 
   # Spring Boot backend application
   backend:
-    image: eclipse-temurin:21-jdk
+    image: eclipse-temurin:25-jdk
     container_name: stock-system-backend-dev
     working_dir: /app
     volumes:
