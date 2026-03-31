@@ -14,20 +14,20 @@ Thumbs.db
 *.iml
 
 # ============================
-# Java / Spring Boot (backend)
+# Java / Spring Boot (apps/api)
 # ============================
-stock-system-backend/target/
-stock-system-backend/.classpath
-stock-system-backend/.project
-stock-system-backend/.settings/
-stock-system-backend/.idea/
-stock-system-backend/*.jar
+apps/api/target/
+apps/api/.classpath
+apps/api/.project
+apps/api/.settings/
+apps/api/.idea/
+apps/api/*.jar
 # Maven / Gradle
-stock-system-backend/.mvn/
-stock-system-backend/mvnw
-stock-system-backend/mvnw.cmd
-stock-system-backend/build/
-stock-system-backend/bin/
+apps/api/.mvn/
+apps/api/mvnw
+apps/api/mvnw.cmd
+apps/api/build/
+apps/api/bin/
 bin/
 .factorypath
 .project
@@ -36,18 +36,18 @@ bin/
 .attach_*
 
 # ============================
-# Node / React (frontend)
+# Node / React (apps/web)
 # ============================
-stock-system-frontend/node_modules/
-stock-system-frontend/dist/
-stock-system-frontend/.vite/
-stock-system-frontend/.cache/
-stock-system-frontend/npm-debug.log
-stock-system-frontend/yarn-error.log
+apps/web/node_modules/
+apps/web/dist/
+apps/web/.vite/
+apps/web/.cache/
+apps/web/npm-debug.log
+apps/web/yarn-error.log
 
 # Playwright test artifacts (generated)
-stock-system-frontend/playwright-report/
-stock-system-frontend/test-results/
+apps/web/playwright-report/
+apps/web/test-results/
 
 # ============================
 # Python / FastAPI
@@ -74,6 +74,9 @@ stock-system-marketdata/.env
 *.env.local
 *.env.development
 *.env.production
+infra/env/dev/*.env
+infra/env/test/*.env
+infra/env/prod/*.env
 
 # ============================
 # Terraform
@@ -98,8 +101,4 @@ opencode.json
 # .github/copilot-instructions.md
 # .agents/workflows/
 # AGENTS.md
-# STYLE_GUIDE.md
-
-# Production deployment reports (generated, not tracked)
-ARCHITECTURE_AND_MIGRATION_REPORT_*.md
-PRODUCTION_DEPLOYMENT_TASKLIST.md
+# docs/STYLE_GUIDE.md

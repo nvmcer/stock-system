@@ -1,0 +1,5 @@
+# Example only.
+# Copy to backend.hcl and fill your real backend settings.
+#
+# Example for Terraform Cloud / remote backend / S3-compatible backend
+# depends on your chosen state storage approach.

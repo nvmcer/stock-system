@@ -1,0 +1,24 @@
+services:
+  caddy:
+    image: caddy:2.10-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-stock-system-edge}-caddy
+    restart: unless-stopped
+    depends_on:
+      - api
+    ports:
+      - "${CADDY_HTTP_PORT:-80}:80"
+      - "${CADDY_HTTPS_PORT:-443}:443"
+    environment:
+      CADDY_SITE_ADDRESS: ${CADDY_SITE_ADDRESS:-localhost}
+      CADDY_ACME_EMAIL: ${CADDY_ACME_EMAIL:-}
+      API_UPSTREAM: ${API_UPSTREAM:-api:8080}
+    volumes:
+      - ${CADDYFILE_PATH:-../caddy/Caddyfile.test}:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    networks:
+      - app
+
+volumes:
+  caddy_data:
+  caddy_config:

@@ -1,0 +1,8 @@
+cloudflare_api_token     = "replace-me"
+cloudflare_account_id    = "replace-me"
+cloudflare_zone_id       = "replace-me"
+pages_project_name       = "stock-system"
+pages_production_branch  = "main"
+api_domain               = "api.example.com"
+api_ipv4                 = "203.0.113.10"
+api_proxied              = false

@@ -1,0 +1,19 @@
+services:
+  api:
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile
+    image: ${API_IMAGE:-stock-system-api:local}
+    restart: unless-stopped
+    env_file:
+      - ${API_ENV_FILE:-../env/dev/api.env}
+    expose:
+      - "${API_PORT:-8080}"
+    environment:
+      SERVER_PORT: ${API_PORT:-8080}
+    networks:
+      - app
+
+networks:
+  app:
+    driver: bridge

@@ -1,0 +1,27 @@
+{
+    admin off
+    email {$CADDY_ACME_EMAIL}
+
+    servers {
+        trusted_proxies static private_ranges
+    }
+}
+
+{$CADDY_SITE_ADDRESS:api.example.com} {
+    encode zstd gzip
+
+    reverse_proxy {$API_UPSTREAM:api:8080} {
+        health_uri /actuator/health
+        health_interval 30s
+        health_timeout 5s
+    }
+
+    header {
+        -Server
+    }
+
+    log {
+        output stdout
+        format json
+    }
+}

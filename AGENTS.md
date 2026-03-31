@@ -1,167 +1,73 @@
-# AGENTS.md – Stock System Project Constraints
+# AGENTS.md - Stock System AI Instructions
 
-Project-specific constraints and conventions that complement Superpowers skills.
+## Purpose
+
+This file is for AI agents only. It defines project-specific constraints, coupling points, and high-risk areas.
+
+For all code standards, use [STYLE_GUIDE.md](./docs/STYLE_GUIDE.md) as the single source of truth.
 
 ## Project Structure
 
-- `stock-system-backend/` – Spring Boot 4.0.3 + Java 21 backend (includes Finnhub market data integration)
-- `stock-system-frontend/` – React 19 + TypeScript 5.9 + Vite 7 frontend
-- `stock-system-infra/` – Terraform infrastructure as code (architecture in transition)
-- `logging-config/` – Observability configs (Grafana, Loki, Prometheus, Alloy)
-- Root `docker-compose.dev.yml` – Local development environment
-- Root `Makefile` – Common automation commands
+- `apps/web/` - React SPA
+- `apps/api/` - Spring Boot API
+- `infra/` - shared docker, caddy, env, observability, and terraform assets
+- `docs/` - architecture, migration, and deployment docs
+- `packages/` - shared contracts and future cross-app packages
 
-## Project Constraints
+## Target Production Architecture
 
-### API Contract Flow
-```
-Frontend (services/api.ts) → Backend Controllers → Services → Repositories → PostgreSQL
-```
+- Frontend: Cloudflare Pages
+- Backend: Hetzner VPS + Docker
+- Reverse proxy: VPS edge
+- Database: Neon PostgreSQL
+- External market data: Finnhub
 
-### Key Shared Contracts
-| Contract | Frontend Location | Backend Location |
-|----------|------------------|------------------|
-| API Response Envelope | `services/api.ts` | `exception/ApiResponse.java` |
-| Stock DTO | `pages/StocksPage.tsx` | `stock/dto/StockResponseDto.java` |
-| Trade DTO | `pages/TradesPage.tsx` | `trades/dto/TradeResponseDto.java` |
-| Portfolio DTO | `pages/PortfolioPage.tsx` | `portfolio/dto/PortfolioResponseDto.java` |
-| Auth (JWT) | `services/api.ts` interceptor | `security/JwtUtil.java` |
-| User DTO | `pages/LoginPage.tsx` | `user/dto/UserResponseDto.java` |
+Prefer this target architecture for all production-facing changes.
 
-### Change Impact Matrix
-| When modifying... | Also check/update... |
-|-------------------|---------------------|
-| Stock entity | `StockResponseDto`, `StockRequestDto`, `StockController`, `StocksPage.tsx`, `api.ts` |
-| Trade entity | `TradeResponseDto`, `TradeRequestDto`, `TradeController`, `TradesPage.tsx`, `api.ts` |
-| Auth flow | `SecurityConfig`, `JwtUtil`, `JwtAuthenticationFilter`, `LoginPage.tsx`, `api.ts` |
-| API response format | `ApiResponse.java`, `GlobalExceptionHandler.java`, `api.ts`, ALL `*Page.tsx` files |
-| Database schema | Add new Flyway migration, update entity, update DTOs |
+## Core System Flow
 
-## Build, Lint, and Test Commands
-
-### Backend (Java/Spring Boot)
-
-**Build:** `./mvnw clean package` (or `-DskipTests`)
-**Run tests:** `./mvnw test`
-**Single test:** `./mvnw test -Dtest=ClassName`
-**Run locally:** `./mvnw spring-boot:run`
-**Code quality:** Follow Spring Boot conventions; Lombok for boilerplate reduction.
-**Database:** Flyway migrations run automatically on startup.
-**Environment:** Set `FINNHUB_API_KEY` for market data in `.env`.
-
-### Frontend (React/TypeScript/Vite)
-
-**Install:** `npm install`
-**Dev server:** `npm run dev` (port 5173, mapped to host 3001 in Docker)
-**Build:** `npm run build` (tsc + vite)
-**Lint:** `npm run lint` (ESLint)
-**Preview:** `npm run preview`
-
-### Infrastructure (Terraform)
-
-**Init:** `terraform init`
-**Plan:** `terraform plan`
-**Apply:** `terraform apply`
-**Destroy:** `terraform destroy`
-**State:** Managed via remote backend (never commit `.tfstate` files).
-
-### Root Makefile Commands
-
-- `make dev` – Start dev environment (Docker Compose with hot reload)
-- `make dev-d` – Start in background
-- `make dev-down` – Stop dev environment
-- `make logs` – View logs
-
-## Code Style Guidelines
-
-### Java (Backend)
-
-**Imports:** Group: `java.*`, `jakarta.*`, `org.springframework.*`, `com.*`. No wildcards except static imports.
-**Naming:** Classes `PascalCase`, methods/variables `camelCase`, constants `UPPER_SNAKE_CASE`.
-**Error handling:** Use `GlobalExceptionHandler` (`@RestControllerAdvice`); return `ApiResponse<T>`. Log with SLF4J.
-**Entities/DTOs:** JPA annotations; Lombok `@Data` or explicit getters/setters. Use `BigDecimal` for monetary values with scale/rounding.
-**Testing:** JUnit 5 (`@Test`), `Given-When-Then`, mock with `@MockBean`.
-**Javadoc:** All public classes and methods must have Javadoc comments.
-
-### TypeScript/React (Frontend)
-
-**Imports:** React first, third-party libraries, then internal modules. Relative imports.
-**Naming:** Components `PascalCase`, functions/variables `camelCase`, constants `UPPER_SNAKE_CASE`.
-**Error handling:** Try/catch for async; display user-friendly errors via `ApiResponse` envelope.
-**Styling:** CSS modules or plain CSS files (one per component); CSS variables for theming.
-**State:** Local with `useState`; React Context for auth/global state.
-**TypeScript:** Explicit types; interfaces for props and API responses; avoid `any`.
-**Components:** One component per file; filename matches component name.
-
-### Terraform (Infrastructure)
-
-**File organization:** `main.tf`, `variables.tf`, `providers.tf`, `modules/`.
-**Naming:** Resources/variables/outputs `snake_case`.
-**Best practices:** Use variables with descriptions, keep secrets in `terraform.tfvars` (not committed), use remote state backend.
-
-## Database Migration Rules
-
-- Current latest migration: `V7__add_realizedPnl_to_portfolio.sql`
-- Next migration must be: `V8__<description>.sql`
-- Always use descriptive `snake_case` filenames
-- Never modify existing migration files – create new ones
-- Test migrations with `./mvnw flyway:validate`
-- Include comments explaining the purpose of the migration
-- Location: `stock-system-backend/src/main/resources/db/migration/`
-
-## File Templates for AI Code Generation
-
-### New Java Controller
-```
-Location: src/main/java/com/{domain}/controller/{Name}Controller.java
-Required: @RestController, @RequestMapping("/api/{domain}"), SLF4J Logger, ApiResponse<T> returns
-Optional: @Operation annotations for OpenAPI documentation
+```text
+Frontend -> Backend API -> PostgreSQL
+                  |
+                  -> Finnhub
 ```
 
-### New Java Service
-```
-Location: src/main/java/com/{domain}/service/{Name}Service.java
-Required: @Service, SLF4J Logger, constructor injection (no @Autowired on fields)
-```
+## Shared Contracts
 
-### New React Page
-```
-Location: src/pages/{Name}Page.tsx
-Required: Typed props/state, error handling with ApiResponse envelope, corresponding CSS file
-```
+- API response envelope
+  - Frontend: `apps/web/src/services/api.ts`
+  - Backend: `apps/api/src/main/java/com/exception/ApiResponse.java`
+- Stock DTOs
+  - Backend: `apps/api/src/main/java/com/stock/dto/`
+  - Frontend consumers: stock-related pages and types
+- Trade DTOs
+  - Backend: `apps/api/src/main/java/com/trades/dto/`
+  - Frontend consumers: trade-related pages and types
+- Portfolio DTOs
+  - Backend: `apps/api/src/main/java/com/portfolio/dto/`
+  - Frontend consumers: portfolio-related pages and types
+- Auth/JWT
+  - Backend: `apps/api/src/main/java/com/security/`
+  - Frontend consumers: login flow, auth storage, authenticated API calls
 
-### New React Component
-```
-Location: src/components/{Name}.tsx + src/components/{Name}.css
-Required: Typed props interface, CSS module or plain CSS file alongside
-```
+## Required Change Coupling
 
-### New Flyway Migration
-```
-Location: src/main/resources/db/migration/V{N}__{description}.sql
-Required: Comment header with purpose and date, idempotent where possible
-```
+- If backend DTOs change, update the frontend pages/types that consume them.
+- If the API envelope changes, update backend exception handling and frontend response parsing together.
+- If auth changes, update backend security and frontend login/request handling together.
+- If schema changes, add a new Flyway migration.
+- If production config changes, keep backend env vars, frontend env vars, and deployment docs aligned.
 
-## Development Workflow
+## High-Risk Areas
 
-1. `make dev` – Start all services with hot reload.
-2. Backend: Spring DevTools auto-restart on code changes.
-3. Frontend: Vite hot reload on code changes.
-4. DB changes: Add Flyway migrations in `src/main/resources/db/migration/`.
-5. Debug: Attach VSCode debugger (backend port 8787, frontend via Chrome DevTools).
+- User-scoped endpoints must not trust client-supplied `userId`.
+- Production secrets, hosts, and credentials must not be hardcoded.
+- Frontend production API URLs must come from environment config.
+- Backend production DB connections must target Neon-compatible PostgreSQL with SSL.
 
-## Commit & Pull Request Conventions
+## Deployment Docs
 
-- **Commits:** Imperative mood ("Add feature", "Fix bug"), prefix with component: `[backend]`, `[frontend]`, `[infra]`.
-- **PR titles:** Summarize change, mention component.
-- **PR description:** Context, testing steps, screenshots for UI changes.
+Use these docs when making production-related changes:
 
-## Observability Stack
-
-- **Grafana** (port 3000): Dashboards for API latency, error rates, business metrics.
-- **Loki** (port 3100): Centralized log aggregation (JSON format via Logstash encoder).
-- **Prometheus** (port 9090): Metrics collection from Spring Boot Actuator + Micrometer.
-- **Alloy** (port 12345): Log collection agent forwarding Docker container logs to Loki.
-
----
-*Last updated: 2026-03-18*
+- [docs/migration/PRODUCTION_DEPLOYMENT_TASKLIST.md](/home/nvmcer/workspace/stock-system/docs/migration/PRODUCTION_DEPLOYMENT_TASKLIST.md)
+- [docs/migration/ARCHITECTURE_AND_MIGRATION_REPORT_2026-03-20.md](/home/nvmcer/workspace/stock-system/docs/migration/ARCHITECTURE_AND_MIGRATION_REPORT_2026-03-20.md)

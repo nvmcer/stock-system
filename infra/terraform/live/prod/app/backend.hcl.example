@@ -1,0 +1,4 @@
+# Example only.
+# Copy to backend.hcl and fill your real backend settings.
+#
+# Keep the app stack state separate from prod/global.

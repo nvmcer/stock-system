@@ -1,0 +1,6 @@
+hcloud_token    = "replace-me"
+server_name     = "stock-system-prod"
+server_type     = "cx22"
+server_image    = "ubuntu-24.04"
+server_location = "nbg1"
+ssh_keys        = []
