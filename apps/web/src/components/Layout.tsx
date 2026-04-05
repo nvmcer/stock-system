@@ -1,5 +1,6 @@
 import React, { type ReactNode } from "react";
 import { useNavigate, Outlet } from "react-router-dom";
+import { clearSession, getDefaultRoute, getSession } from "../services/auth";
 import "./Layout.css";
 
 interface LayoutProps {
@@ -8,19 +9,10 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const navigate = useNavigate();
-  const token = localStorage.getItem("token");
-  const userRole = localStorage.getItem("role");
-  const user = localStorage.getItem("username");
-  const isAuthenticated = token && token !== "undefined" && token !== "null" && token.length > 0;
-
-  if (!isAuthenticated) {
-    localStorage.clear();
-    navigate("/login");
-    return null;
-  }
+  const session = getSession();
 
   const handleLogout = () => {
-    localStorage.clear();
+    clearSession();
     navigate("/login");
   };
 
@@ -29,21 +21,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       <header className="app-header">
         <div
           className="brand"
-          onClick={() =>
-            navigate(userRole === "ROLE_ADMIN" ? "/admin/dashboard" : "/user/dashboard")
-          }
+          onClick={() => navigate(getDefaultRoute(session?.role))}
         >
           StocksBoard
         </div>
-        
+
         <nav className="nav">
           <div className="nav-spacer" />
-          
+
           <div className="user">
-            <span style={{ fontSize: '0.85rem', color: 'var(--muted)', marginRight: '6px' }}>👤</span>
-            <strong style={{ color: '#e6eef8' }}>{user || "Guest"}</strong>
+            <span style={{ fontSize: "0.85rem", color: "var(--muted)", marginRight: "6px" }}>👤</span>
+            <strong style={{ color: "#e6eef8" }}>{session?.username || "Guest"}</strong>
           </div>
-          
+
           <button className="btn-ghost" onClick={handleLogout}>
             Logout
           </button>

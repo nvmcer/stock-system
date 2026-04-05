@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import api from "../services/api";
+import { getDefaultRoute, setSession } from "../services/auth";
 
-// API response format from login endpoint (wrapped in ApiResponse)
 interface LoginResponse {
   success: boolean;
   code: string;
@@ -21,7 +21,6 @@ function RegisterPage() {
   const [password, setPassword] = useState<string>("");
   const navigate = useNavigate();
 
-  // Handle registration form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!username || !password) {
@@ -30,27 +29,12 @@ function RegisterPage() {
     }
 
     try {
-      // Create new user account
       await api.post("/api/auth/register", { username, password });
-      
-      // Auto-login after successful registration
       const res = await api.post<LoginResponse>("/api/auth/login", { username, password });
-      
-      // Access data from ApiResponse envelope
       const loginData = res.data.data;
-      
-      // Store authentication info
-      localStorage.setItem("token", loginData.token);
-      localStorage.setItem("role", loginData.role);
-      localStorage.setItem("userId", String(loginData.userId));
-      localStorage.setItem("username", loginData.username);
-      
-      // Redirect to appropriate dashboard
-      if (loginData.role === "ROLE_ADMIN") {
-        navigate("/admin/dashboard");
-      } else {
-        navigate("/user/dashboard");
-      }
+
+      setSession(loginData);
+      navigate(getDefaultRoute(loginData.role));
     } catch (err) {
       const error = err as { response?: { data?: { data?: { message?: string }, message?: string } }, message?: string };
       const errorMessage = error.response?.data?.data?.message || error.response?.data?.message || error.message;
@@ -62,13 +46,13 @@ function RegisterPage() {
     <div className="login-page">
       <div className="card login-card">
         <h1>Register</h1>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <form onSubmit={handleSubmit} style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
           <input
             type="text"
             placeholder="Username"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            style={{ boxSizing: 'border-box' }}
+            style={{ boxSizing: "border-box" }}
           />
 
           <input
@@ -76,10 +60,10 @@ function RegisterPage() {
             placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            style={{ boxSizing: 'border-box' }}
+            style={{ boxSizing: "border-box" }}
           />
 
-          <button type="submit" className="primary" style={{ alignSelf: 'center', marginTop: '8px' }}>Register</button>
+          <button type="submit" className="primary" style={{ alignSelf: "center", marginTop: "8px" }}>Register</button>
         </form>
       </div>
     </div>
