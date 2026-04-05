@@ -1,6 +1,6 @@
 # Production Deployment Task List
 
-Date: 2026-03-30
+Date: 2026-04-05
 Target architecture:
 
 - Frontend: Cloudflare Pages
@@ -59,7 +59,7 @@ SPRING_PROFILES_ACTIVE=prod
 DATABASE_URL=jdbc:postgresql://<neon-host>/<db>?sslmode=require
 DATABASE_USERNAME=<neon-user>
 DATABASE_PASSWORD=<neon-password>
-JWT_SECRET=<long-random-secret>
+JWT_SECRET=<long-random-secret-at-least-32-characters>
 FINNHUB_API_KEY=<your-key>
 CORS_ALLOWED_ORIGINS=https://app.yourdomain.com
 VITE_API_BASE=https://api.yourdomain.com
@@ -82,25 +82,15 @@ Modify the backend so production works through environment variables only.
 
 Required changes:
 
-- [ ] Replace localhost DB values in [application-prod.yml](/home/nvmcer/workspace/stock-system/apps/api/src/main/resources/application-prod.yml)
-- [ ] Load JWT secret from configuration instead of hardcoding it in [JwtUtil.java](/home/nvmcer/workspace/stock-system/apps/api/src/main/java/com/security/JwtUtil.java)
-- [ ] Load allowed CORS origins from configuration in [SecurityConfig.java](/home/nvmcer/workspace/stock-system/apps/api/src/main/java/com/config/SecurityConfig.java)
-- [ ] Restrict actuator exposure in production
-- [ ] Remove the fixed default-admin bootstrap or replace it with a one-time controlled setup
-
-Suggested backend production config shape:
-
-```yaml
-spring:
-  datasource:
-    url: ${DATABASE_URL}
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
-```
+- [x] Replace localhost DB values in `application-prod.yml`
+- [x] Load JWT secret from configuration instead of hardcoding it in `JwtUtil.java`
+- [x] Load allowed CORS origins from configuration in `SecurityConfig.java`
+- [x] Restrict actuator exposure in production
+- [x] Remove the fixed default-admin bootstrap or replace it with a one-time controlled setup
 
 ### Why
 
-The backend is currently tied to local assumptions. Production needs runtime configuration because:
+The backend must not depend on local assumptions in production because:
 
 - the database is Neon, not local Postgres
 - the frontend origin is a real domain, not localhost
@@ -119,16 +109,15 @@ Refactor user-scoped APIs so they derive the acting user from JWT/auth context i
 
 At minimum:
 
-- [ ] portfolio query
-- [ ] trade buy
-- [ ] trade sell
-- [ ] trade history
-
-Add tests that prove one user cannot act on another user’s data.
+- [x] portfolio query
+- [x] trade buy
+- [x] trade sell
+- [x] trade history
+- [x] add tests that prove regular-user access is resolved from auth context
 
 ### Why
 
-This is a production safety issue, not just a cleanup task. If a user can submit another user’s ID, the system can leak data or allow unauthorized operations.
+This is a production safety issue, not just a cleanup task. If a user can submit another user's ID, the system can leak data or allow unauthorized operations.
 
 ### Success looks like
 
@@ -141,9 +130,10 @@ This is a production safety issue, not just a cleanup task. If a user can submit
 
 Update the frontend production settings:
 
-- [ ] Set [apps/web/.env.production](/home/nvmcer/workspace/stock-system/apps/web/.env.production) to `VITE_API_BASE=https://api.yourdomain.com`
-- [ ] Make sure `npm run build` produces a valid `dist/`
-- [ ] Verify there are no remaining localhost API assumptions
+- [ ] Set `apps/web/.env.production` to `VITE_API_BASE=https://api.yourdomain.com`
+- [x] Make sure `npm run build` produces a valid `dist/`
+- [x] Verify there are no remaining localhost API assumptions in authenticated flows
+- [x] Centralize token handling in frontend services instead of per-page local storage usage
 
 ### Why
 

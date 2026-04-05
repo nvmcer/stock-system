@@ -63,6 +63,18 @@ Useful commands:
 - `make dev-down`
 - `make logs`
 
+### Dev Runtime Notes
+
+- `infra/env/dev/compose.env` should define `HOST_UID` and `HOST_GID` so bind-mounted files are created with the host user instead of `root`.
+- `infra/env/dev/api.env` must define `JWT_SECRET`. The API now fails fast if the secret is missing or shorter than 32 characters.
+- Development admin bootstrap is opt-in only. Set `APP_ADMIN_BOOTSTRAP_ENABLED=true` together with `APP_ADMIN_BOOTSTRAP_USERNAME` and `APP_ADMIN_BOOTSTRAP_PASSWORD` when you explicitly need a one-time dev admin user.
+
+## Security Notes
+
+- User-scoped portfolio and trade APIs derive the acting user from the authenticated JWT context. Login tokens now carry both `role` and `userId` claims so the backend can resolve the current user without trusting a client-controlled `userId`.
+- `POST /api/stocks/update-prices` is restricted to admins.
+- Only `/actuator/health` is public. All other actuator endpoints require an admin identity, including in `dev`, to avoid leaking internals on shared networks.
+
 ## Production Target
 
 - web: Cloudflare Pages

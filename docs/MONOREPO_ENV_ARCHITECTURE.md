@@ -1,6 +1,6 @@
 # Monorepo Environment Architecture
 
-Date: 2026-03-31
+Date: 2026-04-05
 
 ## Goal
 
@@ -63,6 +63,12 @@ Config source:
 - `infra/env/dev/api.env`
 - `infra/env/dev/web.env`
 
+Important dev constraints:
+
+- `compose.env` should define `HOST_UID` and `HOST_GID` so the `api` and `web` containers write bind-mounted files as the host user.
+- `api.env` must define `JWT_SECRET` with a value of at least 32 characters.
+- Development admin bootstrap is opt-in only through `APP_ADMIN_BOOTSTRAP_ENABLED`, `APP_ADMIN_BOOTSTRAP_USERNAME`, and `APP_ADMIN_BOOTSTRAP_PASSWORD`.
+
 ### `test`
 
 - Linux Surface server
@@ -120,6 +126,8 @@ Examples:
 - `CADDY_HTTP_PORT`
 - `CADDY_HTTPS_PORT`
 - `API_UPSTREAM`
+- `HOST_UID`
+- `HOST_GID`
 
 ### API runtime values
 
@@ -133,6 +141,9 @@ Examples:
 - `JWT_SECRET`
 - `FINNHUB_API_KEY`
 - `CORS_ALLOWED_ORIGINS`
+- `APP_ADMIN_BOOTSTRAP_ENABLED`
+- `APP_ADMIN_BOOTSTRAP_USERNAME`
+- `APP_ADMIN_BOOTSTRAP_PASSWORD`
 
 ### Web build-time values
 
@@ -140,6 +151,13 @@ Examples:
 
 - `VITE_API_BASE`
 - `VITE_APP_ENV`
+
+## Security and Access Rules
+
+- User-scoped API operations must derive the acting user from the JWT/authentication context, and newly issued JWTs should carry the authenticated `userId` claim to avoid per-request lookup overhead.
+- Client-provided `userId` is only valid for explicit admin flows.
+- `POST /api/stocks/update-prices` is restricted to admins.
+- Only `/actuator/health` should be public. All other actuator endpoints should require admin privileges in every environment, including `dev`, because local stacks may still be reachable on shared networks.
 
 ## Secrets Strategy
 
