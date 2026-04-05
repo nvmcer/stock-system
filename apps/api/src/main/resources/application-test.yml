@@ -1,0 +1,17 @@
+spring:
+  config:
+    activate:
+      on-profile: test
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+app:
+  admin:
+    bootstrap:
+      enabled: false
+      username: ""
+      password: ""

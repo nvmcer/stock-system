@@ -36,20 +36,11 @@ class AuthControllerTest {
 
     @BeforeEach
     void setUp() {
-        jwtUtil = new JwtUtil();
+        jwtUtil = new JwtUtil("test-jwt-secret-key-with-32-characters");
         objectMapper = new ObjectMapper();
-        
-        AuthController authController = new AuthController(userService);
-        
-        // Inject JwtUtil via reflection (since field is private final)
-        try {
-            var field = AuthController.class.getDeclaredField("jwtUtil");
-            field.setAccessible(true);
-            field.set(authController, jwtUtil);
-        } catch (Exception e) {
-            throw new RuntimeException("Failed to set jwtUtil field", e);
-        }
-        
+
+        AuthController authController = new AuthController(userService, jwtUtil);
+
         mockMvc = MockMvcBuilders.standaloneSetup(authController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();

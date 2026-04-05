@@ -1,6 +1,7 @@
 package com.stock.service;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -10,6 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import com.external.marketdata.MarketDataClient;
+import com.stock.dto.PriceUpdateResultDto;
 import com.stock.dto.StockRequestDto;
 import com.stock.dto.StockResponseDto;
 import com.stock.entity.Stock;
@@ -79,54 +81,57 @@ public class StockService {
     }
 
     // Update prices for all stocks from market data service
-    public void updateAllStockPrices() {
+    public PriceUpdateResultDto updateAllStockPrices() {
         log.info("Starting stock price update for all stocks");
-        
-        // Get all stocks from database
+
         List<Stock> stocks = stockRepository.findAll();
+        PriceUpdateResultDto result = new PriceUpdateResultDto();
+        result.setTotalStocks(stocks.size());
+
         if (stocks.isEmpty()) {
             log.info("No stocks found in database, skipping price update");
-            return;
+            result.setUpdatedCount(0);
+            result.setFailedCount(0);
+            result.setFailedSymbols(List.of());
+            return result;
         }
 
-        // Prepare comma-separated symbol list for API call
         String symbols = stocks.stream()
                 .map(Stock::getSymbol)
                 .collect(Collectors.joining(","));
         log.debug("Fetching prices for symbols: {}", symbols);
 
-        // Fetch latest prices from Finnhub API (rate limiting handled in client)
         Map<String, Double> prices = marketDataClient.getPrices(symbols);
         log.debug("Received prices for {} symbols", prices.size());
 
         int successCount = 0;
-        int failCount = 0;
+        List<String> failedSymbols = new ArrayList<>();
+        List<Stock> updatedStocks = new ArrayList<>();
 
-        // Update each stock with latest price
         for (Stock stock : stocks) {
-            try {
-                Double newPrice = prices.get(stock.getSymbol());
+            Double newPrice = prices.get(stock.getSymbol());
 
-                if (newPrice == null) {
-                    throw new RuntimeException("Price missing for symbol: " + stock.getSymbol());
-                }
-
-                stock.setPrice(BigDecimal.valueOf(newPrice));
-                successCount++;
-
-            } catch (RuntimeException e) {
-                failCount++;
-                log.warn("Failed to update price for symbol {}: {}", stock.getSymbol(), e.getMessage());
+            if (newPrice == null) {
+                failedSymbols.add(stock.getSymbol());
+                log.warn("Failed to update price for symbol {}: Price missing for symbol: {}",
+                        stock.getSymbol(), stock.getSymbol());
+                continue;
             }
+
+            stock.setPrice(BigDecimal.valueOf(newPrice));
+            updatedStocks.add(stock);
+            successCount++;
         }
 
-        // Save all updated stocks to database
-        List<Stock> updatedStocks = stocks.stream()
-                .filter(s -> s.getPrice() != null)
-                .collect(Collectors.toList());
+        if (!updatedStocks.isEmpty()) {
+            stockRepository.saveAll(updatedStocks);
+        }
 
-        stockRepository.saveAll(updatedStocks);
-        log.info("Stock price update completed: {} succeeded, {} failed", successCount, failCount);
+        result.setUpdatedCount(successCount);
+        result.setFailedCount(failedSymbols.size());
+        result.setFailedSymbols(failedSymbols);
+        log.info("Stock price update completed: {} succeeded, {} failed", successCount, failedSymbols.size());
+        return result;
     }
 
     // Convert DTO to entity

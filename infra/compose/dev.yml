@@ -9,31 +9,46 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-stockdb}
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-stockuser} -d ${POSTGRES_DB:-stockdb}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
     ports:
       - "${POSTGRES_PUBLIC_PORT:-5432}:5432"
     networks:
       - app
 
   api:
-    image: eclipse-temurin:21-jdk
+    build:
+      context: ../../apps/api
+      dockerfile: Dockerfile.dev
+    image: ${API_DEV_IMAGE:-stock-system-api-dev:local}
     container_name: ${COMPOSE_PROJECT_NAME:-stock-system-dev}-api
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /app
     command: ./mvnw spring-boot:run -Dspring-boot.run.jvmArguments="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=0.0.0.0:8787"
     volumes:
       - ../../apps/api:/app
-      - ~/.m2:/root/.m2
+      - ~/.m2:/home/ubuntu/.m2
     ports:
       - "${API_PUBLIC_PORT:-8080}:8080"
       - "${API_DEBUG_PORT:-8787}:8787"
+    env_file:
+      - ../env/dev/api.env
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      FINNHUB_API_KEY: ${FINNHUB_API_KEY:-}
+      HOME: /home/ubuntu
+      MAVEN_USER_HOME: /home/ubuntu/.m2
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 
   web:
     image: node:25
     container_name: ${COMPOSE_PROJECT_NAME:-stock-system-dev}-web
+    user: "${HOST_UID:-1000}:${HOST_GID:-1000}"
     working_dir: /app
     command: sh -c "npm install && npm run dev -- --host"
     volumes:

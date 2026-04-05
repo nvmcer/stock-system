@@ -1,14 +1,14 @@
 package com.external.finnhub;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.when;
 
-import java.lang.reflect.Field;
+import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,12 +26,8 @@ class FinnhubClientImplTest {
     private FinnhubClientImpl finnhubClient;
 
     @BeforeEach
-    void setUp() throws Exception {
-        finnhubClient = new FinnhubClientImpl();
-
-        Field apiKeyField = FinnhubClientImpl.class.getDeclaredField("apiKey");
-        apiKeyField.setAccessible(true);
-        apiKeyField.set(finnhubClient, "test-api-key");
+    void setUp() {
+        finnhubClient = new FinnhubClientImpl(restTemplate, "test-api-key");
     }
 
     @Test
@@ -42,55 +38,56 @@ class FinnhubClientImplTest {
         when(restTemplate.getForObject(anyString(), eq(FinnhubClientImpl.FinnhubQuoteResponse.class)))
                 .thenReturn(response);
 
-        Double price = finnhubClient.getQuote("AAPL");
+        Optional<Double> price = finnhubClient.getQuote("AAPL");
 
-        assertEquals(150.25, price);
+        assertTrue(price.isPresent());
+        assertEquals(150.25, price.get());
     }
 
     @Test
-    void getQuote_shouldReturnNull_whenResponseIsNull() {
+    void getQuote_shouldReturnEmpty_whenResponseIsNull() {
         when(restTemplate.getForObject(anyString(), eq(FinnhubClientImpl.FinnhubQuoteResponse.class)))
                 .thenReturn(null);
 
-        Double price = finnhubClient.getQuote("AAPL");
+        Optional<Double> price = finnhubClient.getQuote("AAPL");
 
-        assertNull(price);
+        assertTrue(price.isEmpty());
     }
 
     @Test
-    void getQuote_shouldReturnNull_whenCurrentPriceIsNull() {
+    void getQuote_shouldReturnEmpty_whenCurrentPriceIsNull() {
         FinnhubClientImpl.FinnhubQuoteResponse response = new FinnhubClientImpl.FinnhubQuoteResponse();
         response.setC(null);
 
         when(restTemplate.getForObject(anyString(), eq(FinnhubClientImpl.FinnhubQuoteResponse.class)))
                 .thenReturn(response);
 
-        Double price = finnhubClient.getQuote("AAPL");
+        Optional<Double> price = finnhubClient.getQuote("AAPL");
 
-        assertNull(price);
+        assertTrue(price.isEmpty());
     }
 
     @Test
-    void getQuote_shouldReturnNull_whenCurrentPriceIsZero() {
+    void getQuote_shouldReturnEmpty_whenCurrentPriceIsZero() {
         FinnhubClientImpl.FinnhubQuoteResponse response = new FinnhubClientImpl.FinnhubQuoteResponse();
         response.setC(0.0);
 
         when(restTemplate.getForObject(anyString(), eq(FinnhubClientImpl.FinnhubQuoteResponse.class)))
                 .thenReturn(response);
 
-        Double price = finnhubClient.getQuote("AAPL");
+        Optional<Double> price = finnhubClient.getQuote("AAPL");
 
-        assertNull(price);
+        assertTrue(price.isEmpty());
     }
 
     @Test
-    void getQuote_shouldReturnNull_whenExceptionThrown() {
+    void getQuote_shouldReturnEmpty_whenExceptionThrown() {
         when(restTemplate.getForObject(anyString(), eq(FinnhubClientImpl.FinnhubQuoteResponse.class)))
                 .thenThrow(new RuntimeException("Network error"));
 
-        Double price = finnhubClient.getQuote("AAPL");
+        Optional<Double> price = finnhubClient.getQuote("AAPL");
 
-        assertNull(price);
+        assertTrue(price.isEmpty());
     }
 
     @Test
@@ -123,6 +120,7 @@ class FinnhubClientImplTest {
         response.setC(150.25);
 
         when(restTemplate.getForObject(anyString(), eq(FinnhubClientImpl.FinnhubQuoteResponse.class)))
+                .thenReturn(response)
                 .thenReturn(response);
 
         var result = spyClient.getQuotes("AAPL, ,GOOGL");
@@ -162,6 +160,4 @@ class FinnhubClientImplTest {
 
         assertEquals(0, result.size());
     }
-
-
 }

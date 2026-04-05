@@ -2,6 +2,7 @@ package com.external.finnhub;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,17 +17,21 @@ public class FinnhubClientImpl implements FinnhubClient {
     private static final Logger log = LoggerFactory.getLogger(FinnhubClientImpl.class);
     private static final String FINNHUB_BASE_URL = "https://finnhub.io/api/v1";
 
-    @Value("${finnhub.api.key}")
-    private String apiKey;
-
+    private final String apiKey;
     private final RestTemplate restTemplate;
 
-    public FinnhubClientImpl() {
-        this.restTemplate = new RestTemplate();
+    public FinnhubClientImpl(RestTemplate restTemplate, @Value("${finnhub.api.key:}") String apiKey) {
+        this.restTemplate = restTemplate;
+        this.apiKey = apiKey;
     }
 
     @Override
-    public Double getQuote(String symbol) {
+    public Optional<Double> getQuote(String symbol) {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn("Finnhub API key is not configured; skipping quote fetch for {}", symbol);
+            return Optional.empty();
+        }
+
         try {
             String url = UriComponentsBuilder.fromUriString(FINNHUB_BASE_URL)
                     .path("/quote")
@@ -39,13 +44,13 @@ public class FinnhubClientImpl implements FinnhubClient {
 
             if (response == null || response.getC() == null || response.getC() == 0) {
                 log.warn("Invalid quote data for symbol: {}", symbol);
-                return null;
+                return Optional.empty();
             }
 
-            return response.getC();
+            return Optional.of(response.getC());
         } catch (Exception e) {
             log.error("Failed to fetch quote for {}: {}", symbol, e.getMessage());
-            return null;
+            return Optional.empty();
         }
     }
 
@@ -61,15 +66,13 @@ public class FinnhubClientImpl implements FinnhubClient {
                 continue;
             }
 
-            Double price = getQuote(trimmedSymbol);
-            if (price != null) {
-                result.put(trimmedSymbol.toUpperCase(), price);
+            Optional<Double> price = getQuote(trimmedSymbol);
+            if (price.isPresent()) {
+                result.put(trimmedSymbol.toUpperCase(), price.get());
             } else {
                 log.warn("Failed to get price for symbol: {}", trimmedSymbol);
             }
 
-            // Rate limiting for Finnhub free tier (60 requests per minute)
-            // Sleep for 1100ms between requests to stay under limit
             if (i < symbolList.length - 1) {
                 try {
                     sleepBetweenRequests();
@@ -89,14 +92,14 @@ public class FinnhubClientImpl implements FinnhubClient {
     }
 
     static class FinnhubQuoteResponse {
-        private Double c;  // Current price
-        private Double d;  // Change
-        private Double dp; // Percent change
-        private Double h;  // High price of the day
-        private Double l;  // Low price of the day
-        private Double o;  // Open price of the day
-        private Double pc; // Previous close price
-        private Long t;    // Timestamp
+        private Double c;
+        private Double d;
+        private Double dp;
+        private Double h;
+        private Double l;
+        private Double o;
+        private Double pc;
+        private Long t;
 
         public Double getC() {
             return c;

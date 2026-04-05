@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.exception.ApiResponse;
+import com.stock.dto.PriceUpdateResultDto;
 import com.stock.dto.StockRequestDto;
 import com.stock.dto.StockResponseDto;
 import com.stock.service.PriceUpdateService;
@@ -64,9 +65,28 @@ public class StockController {
         return ResponseEntity.ok(ApiResponse.success(null, "Stock deleted successfully"));
     }
     
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/update-prices")
-    public ResponseEntity<ApiResponse<String>> updatePrices() {
-        priceUpdateService.updateAllPrices();
-        return ResponseEntity.ok(ApiResponse.success("Update Stock Prices Successful", "Prices updated successfully"));
+    public ResponseEntity<ApiResponse<PriceUpdateResultDto>> updatePrices() {
+        PriceUpdateResultDto result = priceUpdateService.updateAllPrices();
+
+        if (result.getTotalStocks() == 0) {
+            return ResponseEntity.ok(ApiResponse.success(result, "No stocks available to update."));
+        }
+
+        if (!result.hasAnyUpdates()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(400,
+                            "Price update failed for all stocks. Check the market data configuration and try again."));
+        }
+
+        if (result.getFailedCount() > 0) {
+            return ResponseEntity.ok(ApiResponse.success(result,
+                    "Prices updated for " + result.getUpdatedCount() + " stock(s), but "
+                            + result.getFailedCount() + " stock(s) failed."));
+        }
+
+        return ResponseEntity.ok(ApiResponse.success(result,
+                "Prices updated successfully for " + result.getUpdatedCount() + " stock(s)."));
     }
 }

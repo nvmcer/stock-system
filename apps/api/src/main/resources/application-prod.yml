@@ -30,3 +30,10 @@ management:
     web:
       exposure:
         include: health
+
+app:
+  admin:
+    bootstrap:
+      enabled: false
+      username: ""
+      password: ""

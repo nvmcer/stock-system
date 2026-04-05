@@ -14,7 +14,7 @@ spring:
       ddl-auto: validate
     show-sql: false
     open-in-view: false
-    mapping-resources: 
+    mapping-resources:
       - META-INF/orm.xml
     properties:
       hibernate:
@@ -23,7 +23,7 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
- 
+
 logging:
   level:
     "[org.hibernate.SQL]": DEBUG
@@ -40,3 +40,10 @@ management:
   metrics:
     tags:
       application: stock-system-api
+
+app:
+  admin:
+    bootstrap:
+      enabled: ${APP_ADMIN_BOOTSTRAP_ENABLED:false}
+      username: ${APP_ADMIN_BOOTSTRAP_USERNAME:}
+      password: ${APP_ADMIN_BOOTSTRAP_PASSWORD:}

@@ -21,11 +21,11 @@ import com.user.service.UserService;
 public class AuthController {
 
     private final UserService userService;
+    private final JwtUtil jwtUtil;
 
-    private final JwtUtil jwtUtil = new JwtUtil();
-
-    public AuthController(UserService userService) {
+    public AuthController(UserService userService, JwtUtil jwtUtil) {
         this.userService = userService;
+        this.jwtUtil = jwtUtil;
     }
 
     @PostMapping("/register")
@@ -40,15 +40,15 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<ApiResponse<Map<String, Object>>> login(@RequestBody LoginRequestDto request) {
         User user = userService.login(request.getUsername(), request.getPassword());
-        String token = jwtUtil.generateToken(user.getUsername(), user.getRole());
-        
+        String token = jwtUtil.generateToken(user.getUsername(), user.getRole(), user.getId());
+
         Map<String, Object> loginData = Map.of(
             "token", token,
             "role", user.getRole(),
             "userId", user.getId(),
             "username", user.getUsername()
         );
-        
+
         return ResponseEntity.ok(ApiResponse.success(loginData, "Login successful"));
     }
 }

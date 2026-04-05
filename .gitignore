@@ -23,9 +23,6 @@ apps/api/.settings/
 apps/api/.idea/
 apps/api/*.jar
 # Maven / Gradle
-apps/api/.mvn/
-apps/api/mvnw
-apps/api/mvnw.cmd
 apps/api/build/
 apps/api/bin/
 bin/
@@ -95,6 +92,7 @@ infra/env/prod/*.env
 .aider.input.history
 .aider.tags.cache.v4/
 opencode.json
+.codex
 
 # Note: The following AI config files ARE tracked (do not ignore):
 # .cursorrules

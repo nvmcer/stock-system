@@ -2,6 +2,8 @@ package com.stock.service;
 
 import org.springframework.stereotype.Service;
 
+import com.stock.dto.PriceUpdateResultDto;
+
 @Service
 public class PriceUpdateService {
 
@@ -13,7 +15,7 @@ public class PriceUpdateService {
 
     // Update prices for all stocks from market data service
     // Delegates to StockService.updateAllStockPrices() to ensure core logic reuse
-    public void updateAllPrices() {
-        stockService.updateAllStockPrices();
+    public PriceUpdateResultDto updateAllPrices() {
+        return stockService.updateAllStockPrices();
     }
 }
