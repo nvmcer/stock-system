@@ -6,6 +6,8 @@ React + Vite frontend for the stock system.
 
 - authenticated UI flows
 - portfolio, trade, and stock pages
+- portfolio AI report generation with provider/model selection
+- latest saved AI report display rendered as readable Markdown
 - API integration through `VITE_API_BASE`
 
 ## Location
@@ -35,6 +37,14 @@ npm run dev
 ```
 
 The local browser entrypoint is `http://localhost:3001`.
+
+## Portfolio AI Report Flow
+
+- Users open the portfolio page to generate an AI analysis report.
+- The UI lets users choose a provider preset or custom OpenAI-compatible base URL.
+- The UI lets users choose a provider-aware model preset or enter a custom model name.
+- The API key is entered at request time and is not persisted in the frontend or backend.
+- The latest saved report is fetched from the backend on page load and rendered as Markdown.
 
 ## Build-Time Configuration
 

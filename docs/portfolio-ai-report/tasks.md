@@ -23,3 +23,5 @@
 - [x] add/update frontend markdown rendering dependency if needed
 - [x] rerun frontend lint after markdown rendering update
 - [x] rerun frontend build after markdown rendering update
+- [x] align repository README and app READMEs with the portfolio AI report feature
+- [x] align deployment and architecture docs with latest-report persistence and OpenAI-compatible provider usage

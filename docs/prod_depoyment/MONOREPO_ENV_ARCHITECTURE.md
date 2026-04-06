@@ -43,6 +43,23 @@ stock-system/
 
 ## Environment Model
 
+## Application Integration Notes
+
+Primary data flow:
+
+- Frontend -> Backend API -> PostgreSQL
+
+Backend outbound integrations:
+
+- Finnhub for market data refresh and quote reads
+- user-selected OpenAI-compatible providers for on-demand portfolio analysis reports
+
+Portfolio AI report constraints:
+
+- provider API keys are supplied by the authenticated user per request
+- provider API keys are not stored in env files, the database, or application logs
+- only the latest generated report per user is persisted in PostgreSQL
+
 ### `dev`
 
 - local Docker Compose
@@ -145,6 +162,8 @@ Examples:
 - `APP_ADMIN_BOOTSTRAP_USERNAME`
 - `APP_ADMIN_BOOTSTRAP_PASSWORD`
 
+The portfolio AI report feature does not require a shared server-side provider key in environment configuration because users supply their own OpenAI-compatible credentials when generating a report.
+
 ### Web build-time values
 
 Examples:
@@ -173,6 +192,8 @@ Secrets should live in:
 - GitHub environment secrets for `test` and `prod`
 - server runtime files outside git
 - Cloudflare Pages environment variables for web build values
+
+The portfolio AI report flow is an exception to shared-secret management: provider credentials are end-user supplied at request time and must remain transient.
 
 ## Deployment Flow
 

@@ -52,6 +52,10 @@ Prepare these values before deployment:
 - `CORS_ALLOWED_ORIGINS`
 - `VITE_API_BASE`
 
+Not required for deployment:
+
+- a shared OpenAI or LLM provider key for portfolio reports, because users supply OpenAI-compatible API keys per request
+
 Recommended target values:
 
 ```env
@@ -73,6 +77,7 @@ Production deployment fails early if values are missing, and production security
 
 - every production value is known
 - no secret needs to be typed manually during go-live
+- AI report generation does not depend on a shared backend provider secret
 
 ## 3. Update the Backend for Production Configuration
 
@@ -87,6 +92,7 @@ Required changes:
 - [x] Load allowed CORS origins from configuration in `SecurityConfig.java`
 - [x] Restrict actuator exposure in production
 - [x] Remove the fixed default-admin bootstrap or replace it with a one-time controlled setup
+- [x] Keep AI provider credentials transient and out of backend configuration storage
 
 ### Why
 
@@ -169,6 +175,8 @@ After that:
 - [ ] Run Flyway migrations against Neon
 - [ ] Verify the schema is created correctly
 
+The current Flyway set should include the latest portfolio AI report table so the newest saved report per user can persist in production.
+
 ### Why
 
 Neon replaces the local Docker Postgres in production. Flyway must succeed there before the app is usable.
@@ -178,6 +186,7 @@ Neon replaces the local Docker Postgres in production. Flyway must succeed there
 - backend can connect to Neon
 - Flyway initializes the schema
 - the app no longer depends on local Postgres assumptions
+- the `portfolio_analysis_reports` table exists for persisted latest AI report storage
 
 ## 7. Create and Harden the Hetzner VPS
 

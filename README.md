@@ -2,6 +2,13 @@
 
 Stock portfolio system built as a monorepo with a React web app, a Spring Boot API, and shared infrastructure for `dev`, `test`, and `prod`.
 
+## User Features
+
+- authenticated stock, trade, and portfolio workflows
+- user-scoped portfolio and trade history APIs derived from JWT context
+- AI portfolio analysis reports with user-selected OpenAI-compatible providers and models
+- latest generated AI report persisted per user and rendered as readable Markdown in the portfolio page
+
 ## Monorepo Layout
 
 ```text
@@ -72,6 +79,7 @@ Useful commands:
 ## Security Notes
 
 - User-scoped portfolio and trade APIs derive the acting user from the authenticated JWT context. Login tokens now carry both `role` and `userId` claims so the backend can resolve the current user without trusting a client-controlled `userId`.
+- Portfolio AI analysis uses user-supplied OpenAI-compatible API keys per request. The backend persists only the latest generated report content and metadata per user, never the provider secret.
 - `POST /api/stocks/update-prices` is restricted to admins.
 - Only `/actuator/health` is public. All other actuator endpoints require an admin identity, including in `dev`, to avoid leaking internals on shared networks.
 
@@ -82,9 +90,10 @@ Useful commands:
 - reverse proxy: Caddy
 - database: Neon PostgreSQL
 - market data: Finnhub
+- on-demand AI analysis: user-selected OpenAI-compatible providers reached through the backend
 
 See:
 
-- `docs/MONOREPO_ENV_ARCHITECTURE.md`
-- `docs/migration/PRODUCTION_DEPLOYMENT_TASKLIST.md`
-- `docs/migration/ARCHITECTURE_AND_MIGRATION_REPORT_2026-03-20.md`
+- `docs/prod_depoyment/MONOREPO_ENV_ARCHITECTURE.md`
+- `docs/prod_depoyment/PRODUCTION_DEPLOYMENT_TASKLIST.md`
+- `docs/portfolio-ai-report/spec.md`

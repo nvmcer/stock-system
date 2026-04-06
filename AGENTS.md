@@ -1,5 +1,38 @@
 # AGENTS.md - Stock System AI Instructions
 
+## Workflow (MANDATORY)
+
+This repository follows [AI_WORKFLOW.md](./docs/AI_WORKFLOW.md).
+
+It is the **single source of truth** for how all tasks must be executed.
+
+---
+
+## Hard Rules
+
+Before making any code changes, you MUST:
+
+1. Read `AI_WORKFLOW.md`
+2. Create:
+   - `docs/<feature-name>/spec.md`
+   - `docs/<feature-name>/tasks.md`
+3. Work in:
+   - `feature/<feature-name>` branch or worktree
+4. Execute tasks from `tasks.md`
+5. Run tests before completion
+6. Prepare PR with references to spec and tasks
+
+---
+
+## Forbidden
+
+- Coding without spec.md
+- Skipping tasks.md
+- Editing main branch directly
+- Ignoring failing tests
+
+---
+
 ## Purpose
 
 This file is for AI agents only. It defines project-specific constraints, coupling points, and high-risk areas.
@@ -64,10 +97,3 @@ Frontend -> Backend API -> PostgreSQL
 - Production secrets, hosts, and credentials must not be hardcoded.
 - Frontend production API URLs must come from environment config.
 - Backend production DB connections must target Neon-compatible PostgreSQL with SSL.
-
-## Deployment Docs
-
-Use these docs when making production-related changes:
-
-- [docs/migration/PRODUCTION_DEPLOYMENT_TASKLIST.md](/home/nvmcer/workspace/stock-system/docs/migration/PRODUCTION_DEPLOYMENT_TASKLIST.md)
-- [docs/migration/ARCHITECTURE_AND_MIGRATION_REPORT_2026-03-20.md](/home/nvmcer/workspace/stock-system/docs/migration/ARCHITECTURE_AND_MIGRATION_REPORT_2026-03-20.md)
