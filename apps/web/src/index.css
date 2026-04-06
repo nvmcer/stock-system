@@ -103,6 +103,150 @@ table td {
   align-self: flex-start;
 }
 
+.report-form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.report-field {
+  display: block;
+  text-align: left;
+  color: #cbd5e1;
+  font-weight: 600;
+}
+
+.report-field > span {
+  display: inline-block;
+  margin-bottom: 6px;
+}
+
+.report-input,
+.report-select {
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.78));
+  color: #e2e8f0;
+  box-sizing: border-box;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+}
+
+.report-input::placeholder {
+  color: #64748b;
+}
+
+.report-input:focus,
+.report-select:focus {
+  outline: none;
+  border-color: rgba(99, 102, 241, 0.65);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.12);
+}
+
+.report-select {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  padding-right: 42px;
+  background-image:
+    linear-gradient(180deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.78)),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 20 20' fill='none'%3E%3Cpath d='M5 7.5L10 12.5L15 7.5' stroke='%23cbd5e1' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat, no-repeat;
+  background-position: center, right 14px center;
+  background-size: cover, 14px 14px;
+}
+
+.report-select option {
+  background: #0b1220;
+  color: #e2e8f0;
+}
+
+.report-markdown {
+  color: #e2e8f0;
+  line-height: 1.8;
+  word-break: break-word;
+}
+
+.report-markdown > :first-child {
+  margin-top: 0;
+}
+
+.report-markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.report-markdown h1,
+.report-markdown h2,
+.report-markdown h3,
+.report-markdown h4 {
+  color: #f8fafc;
+  line-height: 1.25;
+  margin: 1.3em 0 0.6em;
+}
+
+.report-markdown h2 {
+  font-size: 1.2rem;
+  padding-bottom: 0.35rem;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.16);
+}
+
+.report-markdown h3 {
+  font-size: 1.05rem;
+}
+
+.report-markdown p {
+  margin: 0 0 1rem;
+  color: #dbe7f3;
+}
+
+.report-markdown ul,
+.report-markdown ol {
+  margin: 0 0 1rem 1.2rem;
+  padding: 0;
+}
+
+.report-markdown li {
+  margin-bottom: 0.45rem;
+  color: #dbe7f3;
+}
+
+.report-markdown strong {
+  color: #f8fafc;
+}
+
+.report-markdown code {
+  font-family: ui-monospace, SFMono-Regular, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.92em;
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 6px;
+  padding: 0.1rem 0.35rem;
+}
+
+.report-markdown pre {
+  background: rgba(15, 23, 42, 0.88);
+  border: 1px solid rgba(148, 163, 184, 0.15);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  overflow-x: auto;
+  margin: 0 0 1rem;
+}
+
+.report-markdown pre code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.report-markdown blockquote {
+  margin: 0 0 1rem;
+  padding: 0.15rem 0 0.15rem 1rem;
+  border-left: 3px solid rgba(99, 102, 241, 0.55);
+  color: #cbd5e1;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
