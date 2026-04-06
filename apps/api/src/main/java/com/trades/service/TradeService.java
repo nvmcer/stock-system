@@ -109,6 +109,7 @@ public class TradeService {
     }
 
     // Retrieve all trades for a user
+    @Transactional(readOnly = true)
     public List<TradeResponseDto> getTradeHistory(Long userId) {
         List<Trade> trades = tradeRepository.findByUserId(userId);
         return trades.stream().map(t -> {

@@ -58,6 +58,11 @@ class GlobalExceptionHandlerTest {
         void throwGenericException() {
             throw new RuntimeException("Something went wrong");
         }
+
+        @GetMapping("/test/llm-provider-exception")
+        void throwLlmProviderException() {
+            throw new LlmProviderException("Provider network timeout");
+        }
     }
 
     @Test
@@ -122,6 +127,17 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.success").value(false))
                 .andExpect(jsonPath("$.code").value("500"))
                 .andExpect(jsonPath("$.message").value("Internal Server Error: Something went wrong"))
+                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.timestamp").exists());
+    }
+
+    @Test
+    void handleLlmProviderException_shouldReturnBadGatewayResponse() throws Exception {
+        mockMvc.perform(get("/test/llm-provider-exception"))
+                .andExpect(status().isBadGateway())
+                .andExpect(jsonPath("$.success").value(false))
+                .andExpect(jsonPath("$.code").value("502"))
+                .andExpect(jsonPath("$.message").value("Provider network timeout"))
                 .andExpect(jsonPath("$.data").doesNotExist())
                 .andExpect(jsonPath("$.timestamp").exists());
     }

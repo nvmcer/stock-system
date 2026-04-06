@@ -1,0 +1,25 @@
+- [x] create feature branch `feature/portfolio-ai-report`
+- [x] add backend DTOs and service support for AI portfolio report generation
+- [x] add backend controller endpoint for user-scoped report requests
+- [x] add backend tests for report generation flow
+- [x] add portfolio page UI for provider, base URL, model, and API key input
+- [x] render generated AI report with loading and error states
+- [x] run backend tests
+- [x] run frontend lint
+- [x] run frontend build
+- [x] self-review changes and confirm spec/tasks alignment
+- [x] harden AI report generation for OpenAI-compatible response variations
+- [x] map provider/network failures to explicit non-500 API errors
+- [x] add regression tests for provider/network failures and content-array responses
+- [x] rerun backend tests after report generation hardening
+- [x] add Flyway migration and persistence model for the latest saved portfolio AI report
+- [x] save generated reports and expose latest-report read API
+- [x] update provider/model selection UI to use styled dark dropdowns with custom override support
+- [x] load the latest saved report on the portfolio page
+- [x] rerun backend tests for persistence changes
+- [x] rerun frontend lint
+- [x] rerun frontend build
+- [x] render the saved report as readable markdown instead of raw text
+- [x] add/update frontend markdown rendering dependency if needed
+- [x] rerun frontend lint after markdown rendering update
+- [x] rerun frontend build after markdown rendering update

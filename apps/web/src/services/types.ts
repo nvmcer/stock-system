@@ -10,6 +10,22 @@ export interface PortfolioItem {
   totalProfit: number;
 }
 
+export interface PortfolioAiReportRequest {
+  provider: string;
+  baseUrl: string;
+  model: string;
+  apiKey: string;
+}
+
+export interface PortfolioAiReport {
+  provider: string;
+  model: string;
+  reportMarkdown: string;
+  generatedAt: string;
+  holdingsAnalyzed: number;
+  totalMarketValue: number;
+}
+
 export interface Stock {
   id: number;
   symbol: string;

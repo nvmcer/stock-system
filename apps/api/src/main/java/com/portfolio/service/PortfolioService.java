@@ -5,8 +5,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.portfolio.dto.PortfolioResponseDto;
 import com.portfolio.entity.Portfolio;
@@ -17,15 +17,16 @@ import com.stock.repository.StockRepository;
 @Service
 public class PortfolioService {
     private final PortfolioRepository portfolioRepository;
-    @Autowired
-    private StockRepository stockRepository;
+    private final StockRepository stockRepository;
 
 
     public PortfolioService(PortfolioRepository portfolioRepository, StockRepository stockRepository) {
         this.portfolioRepository = portfolioRepository;
+        this.stockRepository = stockRepository;
     }
 
     // Get user's portfolio with profit/loss calculations (only active holdings)
+    @Transactional(readOnly = true)
     public List<PortfolioResponseDto> getUserPortfolio(Long userId) {
         List<Portfolio> portfolios = portfolioRepository.findByUserId(userId);
 
@@ -69,6 +70,7 @@ public class PortfolioService {
     }
     
     // Calculate total profit including cleared positions
+    @Transactional(readOnly = true)
     public BigDecimal getTotalProfit(Long userId) {
         List<Portfolio> allPortfolios = portfolioRepository.findByUserId(userId);
         

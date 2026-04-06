@@ -41,6 +41,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("400", ex.getMessage()));
     }
 
+    @ExceptionHandler(LlmProviderException.class)
+    public ResponseEntity<ApiResponse<String>> handleLlmProviderException(LlmProviderException ex) {
+        log.error("LLM provider error: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(ApiResponse.error("502", ex.getMessage()));
+    }
+
     @ExceptionHandler(jakarta.persistence.EntityNotFoundException.class)
     public ResponseEntity<ApiResponse<String>> handleEntityNotFound(jakarta.persistence.EntityNotFoundException ex) {
         log.error("Entity not found: {}", ex.getMessage());
