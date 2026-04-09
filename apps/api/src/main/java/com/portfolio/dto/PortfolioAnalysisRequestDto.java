@@ -4,6 +4,7 @@ public class PortfolioAnalysisRequestDto {
     private String provider;
     private String baseUrl;
     private String model;
+    private String language;
     private String apiKey;
 
     public String getProvider() {
@@ -32,6 +33,14 @@ public class PortfolioAnalysisRequestDto {
 
     public String getApiKey() {
         return apiKey;
+    }
+
+    public String getLanguage() {
+        return language;
+    }
+
+    public void setLanguage(String language) {
+        this.language = language;
     }
 
     public void setApiKey(String apiKey) {

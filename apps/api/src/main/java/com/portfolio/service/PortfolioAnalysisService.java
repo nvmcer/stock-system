@@ -5,6 +5,7 @@ import java.math.RoundingMode;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import org.slf4j.Logger;
@@ -35,20 +36,8 @@ public class PortfolioAnalysisService {
 
     private static final Logger log = LoggerFactory.getLogger(PortfolioAnalysisService.class);
     private static final String DEFAULT_PROVIDER_NAME = "Custom";
-    private static final String SYSTEM_PROMPT = """
-            You are a professional portfolio risk analyst.
-            Analyze only the portfolio data provided by the user.
-            Infer the most likely industry exposure for each holding from its symbol and company name when sector data is not explicit.
-            If an industry classification is uncertain, explicitly label it as an assumption.
-            Return valid Markdown in Simplified Chinese.
-            Use these sections in order:
-            1. ## 总览
-            2. ## 产业暴露度
-            3. ## 持仓结构
-            4. ## 风险分析
-            5. ## 关注事项与建议
-            Keep the tone concise, practical, and data-backed.
-            """;
+    private static final String REPORT_LANGUAGE_ENGLISH = "en";
+    private static final String REPORT_LANGUAGE_SIMPLIFIED_CHINESE = "zh-CN";
 
     private final PortfolioService portfolioService;
     private final PortfolioAnalysisReportRepository reportRepository;
@@ -84,6 +73,7 @@ public class PortfolioAnalysisService {
         String providerName = resolveProviderName(request);
         String providerUrl = buildProviderUrl(request.getBaseUrl());
         String model = request.getModel().trim();
+        String reportLanguage = resolveReportLanguage(request.getLanguage());
         Instant generatedAt = Instant.now();
 
         Map<String, Object> body = Map.of(
@@ -91,8 +81,8 @@ public class PortfolioAnalysisService {
                 "temperature", 0.2,
                 "max_tokens", 1200,
                 "messages", List.of(
-                        Map.of("role", "system", "content", SYSTEM_PROMPT),
-                        Map.of("role", "user", "content", buildUserPrompt(holdings, totalMarketValue))));
+                        Map.of("role", "system", "content", buildSystemPrompt(reportLanguage)),
+                        Map.of("role", "user", "content", buildUserPrompt(holdings, totalMarketValue, reportLanguage))));
 
         HttpHeaders headers = new HttpHeaders();
         headers.setContentType(MediaType.APPLICATION_JSON);
@@ -171,16 +161,78 @@ public class PortfolioAnalysisService {
         return isBlank(request.getProvider()) ? DEFAULT_PROVIDER_NAME : request.getProvider().trim();
     }
 
-    private String buildUserPrompt(List<PortfolioResponseDto> holdings, BigDecimal totalMarketValue) {
+    private String resolveReportLanguage(String language) {
+        if (isBlank(language)) {
+            return REPORT_LANGUAGE_ENGLISH;
+        }
+
+        String normalized = language.trim().toLowerCase(Locale.ROOT).replace('_', '-');
+        return switch (normalized) {
+            case "zh", "zh-cn", "zh-hans", "chinese", "simplified-chinese" -> REPORT_LANGUAGE_SIMPLIFIED_CHINESE;
+            default -> REPORT_LANGUAGE_ENGLISH;
+        };
+    }
+
+    private String buildSystemPrompt(String language) {
+        if (REPORT_LANGUAGE_SIMPLIFIED_CHINESE.equals(language)) {
+            return """
+                    You are a professional portfolio risk analyst.
+                    Analyze only the portfolio data provided by the user.
+                    Infer the most likely industry exposure for each holding from its symbol and company name when sector data is not explicit.
+                    If an industry classification is uncertain, explicitly label it as an assumption.
+                    Return valid GitHub-flavored Markdown in Simplified Chinese.
+                    Return only the report body. Do not wrap the output in triple backticks.
+                    Do not turn section headings into numbered or bulleted list items.
+                    Use exactly these Markdown headings in this order:
+                    ## 总览
+                    ## 产业暴露度
+                    ## 持仓结构
+                    ## 风险分析
+                    ## 关注事项与建议
+                    Keep the tone concise, practical, and data-backed.
+                    """;
+        }
+
+        return """
+                You are a professional portfolio risk analyst.
+                Analyze only the portfolio data provided by the user.
+                Infer the most likely industry exposure for each holding from its symbol and company name when sector data is not explicit.
+                If an industry classification is uncertain, explicitly label it as an assumption.
+                Return valid GitHub-flavored Markdown in English.
+                Return only the report body. Do not wrap the output in triple backticks.
+                Do not turn section headings into numbered or bulleted list items.
+                Use exactly these Markdown headings in this order:
+                ## Overview
+                ## Industry Exposure
+                ## Holdings Structure
+                ## Risk Analysis
+                ## Watchlist and Suggestions
+                Keep the tone concise, practical, and data-backed.
+                """;
+    }
+
+    private String buildUserPrompt(List<PortfolioResponseDto> holdings, BigDecimal totalMarketValue, String language) {
         StringBuilder prompt = new StringBuilder();
-        prompt.append("请基于下面的持仓数据生成分析报告。\n");
-        prompt.append("总持仓市值（按 currentPrice * quantity 估算）: ")
-                .append(totalMarketValue.toPlainString())
-                .append("\n");
-        prompt.append("活跃持仓数量: ").append(holdings.size()).append("\n");
-        prompt.append("当前没有现金仓位、基准指数、波动率或行业标签等额外数据。\n");
-        prompt.append("请明确指出哪些产业归类属于基于证券名称/代码的推断。\n\n");
-        prompt.append("持仓明细:\n");
+
+        if (REPORT_LANGUAGE_SIMPLIFIED_CHINESE.equals(language)) {
+            prompt.append("请基于下面的持仓数据生成分析报告。\n");
+            prompt.append("总持仓市值（按 currentPrice * quantity 估算）: ")
+                    .append(totalMarketValue.toPlainString())
+                    .append("\n");
+            prompt.append("活跃持仓数量: ").append(holdings.size()).append("\n");
+            prompt.append("当前没有现金仓位、基准指数、波动率或行业标签等额外数据。\n");
+            prompt.append("请明确指出哪些产业归类属于基于证券名称/代码的推断。\n\n");
+            prompt.append("持仓明细:\n");
+        } else {
+            prompt.append("Generate an analysis report based on the portfolio data below.\n");
+            prompt.append("Total portfolio market value (estimated by currentPrice * quantity): ")
+                    .append(totalMarketValue.toPlainString())
+                    .append("\n");
+            prompt.append("Active holdings count: ").append(holdings.size()).append("\n");
+            prompt.append("There is currently no additional data such as cash position, benchmark index, volatility, or sector labels.\n");
+            prompt.append("Explicitly identify which industry classifications are inferred from security names or symbols.\n\n");
+            prompt.append("Holdings:\n");
+        }
 
         for (PortfolioResponseDto holding : holdings) {
             BigDecimal marketValue = calculateMarketValue(holding);
@@ -198,7 +250,12 @@ public class PortfolioAnalysisService {
             prompt.append("  totalProfit: ").append(amountOrZero(holding.getTotalProfit()).toPlainString()).append("\n");
         }
 
-        prompt.append("\n请重点分析产业暴露度、集中度、盈亏结构、潜在风险，并给出简洁的观察结论。\n");
+        if (REPORT_LANGUAGE_SIMPLIFIED_CHINESE.equals(language)) {
+            prompt.append("\n请重点分析产业暴露度、集中度、盈亏结构、潜在风险，并给出简洁的观察结论。\n");
+        } else {
+            prompt.append("\nFocus on industry exposure, concentration, profit and loss structure, potential risks, and concise conclusions.\n");
+        }
+
         return prompt.toString();
     }
 
@@ -239,6 +296,8 @@ public class PortfolioAnalysisService {
         if (content.isBlank()) {
             content = root.path("choices").path(0).path("text").asText("").trim();
         }
+
+        content = unwrapMarkdownCodeFence(content);
 
         if (content.isBlank()) {
             throw new LlmProviderException("LLM provider returned an empty analysis report.");
@@ -287,6 +346,24 @@ public class PortfolioAnalysisService {
         } catch (JsonProcessingException ex) {
             return "please verify the API key, model, and base URL.";
         }
+    }
+
+    private String unwrapMarkdownCodeFence(String content) {
+        String normalized = content.trim().replace("\r\n", "\n");
+        int firstLineBreak = normalized.indexOf('\n');
+
+        if (firstLineBreak < 0 || !normalized.endsWith("```")) {
+            return content.trim();
+        }
+
+        String openingFence = normalized.substring(0, firstLineBreak).trim().toLowerCase(Locale.ROOT);
+        if (!(openingFence.equals("```")
+                || openingFence.equals("```markdown")
+                || openingFence.equals("```md"))) {
+            return content.trim();
+        }
+
+        return normalized.substring(firstLineBreak + 1, normalized.length() - 3).trim();
     }
 
     private String nullToEmpty(String value) {
