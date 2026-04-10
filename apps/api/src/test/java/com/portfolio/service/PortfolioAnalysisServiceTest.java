@@ -3,6 +3,7 @@ package com.portfolio.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.verify;
@@ -81,7 +82,7 @@ class PortfolioAnalysisServiceTest {
                   "choices": [
                     {
                       "message": {
-                        "content": "## 总览\\n- 持仓集中于科技行业"
+                        "content": "```markdown\\n## Overview\\n- Holdings are concentrated in technology\\n```"
                       }
                     }
                   ]
@@ -103,7 +104,7 @@ class PortfolioAnalysisServiceTest {
         assertEquals("gpt-4.1-mini", response.getModel());
         assertEquals(1, response.getHoldingsAnalyzed());
         assertEquals(new BigDecimal("2000.00"), response.getTotalMarketValue());
-        assertEquals("## 总览\n- 持仓集中于科技行业", response.getReportMarkdown());
+        assertEquals("## Overview\n- Holdings are concentrated in technology", response.getReportMarkdown());
 
         ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
         verify(restTemplate).exchange(
@@ -119,11 +120,18 @@ class PortfolioAnalysisServiceTest {
         assertEquals("gpt-4.1-mini", requestBody.get("model"));
         assertEquals(1200, requestBody.get("max_tokens"));
 
+        List<?> messages = (List<?>) requestBody.get("messages");
+        Map<?, ?> systemMessage = (Map<?, ?>) messages.get(0);
+        Map<?, ?> userMessage = (Map<?, ?>) messages.get(1);
+        assertTrue(((String) systemMessage.get("content")).contains("Return valid GitHub-flavored Markdown in English."));
+        assertTrue(((String) systemMessage.get("content")).contains("Do not wrap the output in triple backticks."));
+        assertTrue(((String) userMessage.get("content")).contains("Generate an analysis report based on the portfolio data below."));
+
         ArgumentCaptor<PortfolioAnalysisReport> reportCaptor = ArgumentCaptor.forClass(PortfolioAnalysisReport.class);
         verify(reportRepository).save(reportCaptor.capture());
         assertEquals("OpenAI", reportCaptor.getValue().getProvider());
         assertEquals("gpt-4.1-mini", reportCaptor.getValue().getModel());
-        assertEquals("## 总览\n- 持仓集中于科技行业", reportCaptor.getValue().getReportMarkdown());
+        assertEquals("## Overview\n- Holdings are concentrated in technology", reportCaptor.getValue().getReportMarkdown());
         assertNotNull(reportCaptor.getValue().getGeneratedAt());
     }
 
@@ -200,6 +208,7 @@ class PortfolioAnalysisServiceTest {
         request.setProvider("OpenRouter");
         request.setBaseUrl("https://openrouter.ai/api/v1");
         request.setModel("openai/gpt-4.1-mini");
+        request.setLanguage("zh-CN");
         request.setApiKey("sk-test");
 
         when(portfolioService.getUserPortfolio(1L)).thenReturn(List.of(holding));
@@ -227,6 +236,21 @@ class PortfolioAnalysisServiceTest {
         var response = portfolioAnalysisService.generateReport(1L, request);
 
         assertEquals("## 总览\n- 半导体权重较高", response.getReportMarkdown());
+
+        ArgumentCaptor<HttpEntity> entityCaptor = ArgumentCaptor.forClass(HttpEntity.class);
+        verify(restTemplate).exchange(
+                eq("https://openrouter.ai/api/v1/chat/completions"),
+                eq(HttpMethod.POST),
+                entityCaptor.capture(),
+                eq(String.class));
+
+        Map<?, ?> requestBody = (Map<?, ?>) entityCaptor.getValue().getBody();
+        List<?> messages = (List<?>) requestBody.get("messages");
+        Map<?, ?> systemMessage = (Map<?, ?>) messages.get(0);
+        Map<?, ?> userMessage = (Map<?, ?>) messages.get(1);
+        assertTrue(((String) systemMessage.get("content")).contains("Return valid GitHub-flavored Markdown in Simplified Chinese."));
+        assertTrue(((String) systemMessage.get("content")).contains("Do not turn section headings into numbered or bulleted list items."));
+        assertTrue(((String) userMessage.get("content")).contains("请基于下面的持仓数据生成分析报告。"));
     }
 
     @Test

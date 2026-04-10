@@ -14,6 +14,7 @@ export interface PortfolioAiReportRequest {
   provider: string;
   baseUrl: string;
   model: string;
+  language: string;
   apiKey: string;
 }
 

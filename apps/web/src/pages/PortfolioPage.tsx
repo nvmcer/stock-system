@@ -1,11 +1,17 @@
 import { useEffect, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import api from "../services/api";
 import type { ApiResponse, PortfolioAiReport, PortfolioAiReportRequest, PortfolioItem } from "../services/types";
 
 const CUSTOM_PROVIDER = "Custom";
 const CUSTOM_MODEL = "__custom_model__";
+
+const REPORT_LANGUAGE_OPTIONS = [
+  { value: "en", label: "English" },
+  { value: "zh-CN", label: "简体中文" },
+] as const;
 
 const PROVIDER_OPTIONS = [
   {
@@ -71,6 +77,23 @@ function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
 }
 
+function unwrapMarkdownCodeFence(markdown: string) {
+  const trimmed = markdown.trim();
+  const normalized = trimmed.replace(/\r\n/g, "\n");
+  const firstLineBreak = normalized.indexOf("\n");
+
+  if (firstLineBreak === -1 || !normalized.endsWith("```")) {
+    return markdown;
+  }
+
+  const openingFence = normalized.slice(0, firstLineBreak).trim().toLowerCase();
+  if (!["```", "```markdown", "```md"].includes(openingFence)) {
+    return markdown;
+  }
+
+  return normalized.slice(firstLineBreak + 1, -3).trim();
+}
+
 function PortfolioPage() {
   const defaultProvider = PROVIDER_OPTIONS[0];
   const [portfolio, setPortfolio] = useState<PortfolioItem[]>([]);
@@ -82,6 +105,7 @@ function PortfolioPage() {
   const [report, setReport] = useState<PortfolioAiReport | null>(null);
   const [form, setForm] = useState<Omit<PortfolioAiReportRequest, "baseUrl" | "model">>({
     provider: defaultProvider.label,
+    language: REPORT_LANGUAGE_OPTIONS[0].value,
     apiKey: "",
   });
   const [selectedModel, setSelectedModel] = useState<string>(defaultProvider.models[0].value);
@@ -161,6 +185,10 @@ function PortfolioPage() {
     setForm((current) => ({ ...current, apiKey: event.target.value }));
   };
 
+  const handleLanguageChange = (event: ChangeEvent<HTMLSelectElement>) => {
+    setForm((current) => ({ ...current, language: event.target.value }));
+  };
+
   const handleGenerateReport = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setReportError(null);
@@ -181,6 +209,7 @@ function PortfolioPage() {
         provider: form.provider,
         baseUrl: effectiveBaseUrl,
         model: effectiveModel,
+        language: form.language,
         apiKey: form.apiKey,
       };
 
@@ -240,6 +269,15 @@ function PortfolioPage() {
               <select className="report-select" value={selectedModel} onChange={handleModelSelectChange}>
                 {activeProvider.models.map((modelOption) => (
                   <option key={modelOption.value} value={modelOption.value}>{modelOption.label}</option>
+                ))}
+              </select>
+            </label>
+
+            <label className="report-field">
+              <span>Language</span>
+              <select className="report-select" value={form.language} onChange={handleLanguageChange}>
+                {REPORT_LANGUAGE_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>{option.label}</option>
                 ))}
               </select>
             </label>
@@ -393,7 +431,7 @@ function PortfolioPage() {
               Generated at {new Date(report.generatedAt).toLocaleString()} · Estimated analyzed market value {formatCurrency(report.totalMarketValue)}
             </div>
             <div className="report-markdown">
-              <ReactMarkdown>{report.reportMarkdown}</ReactMarkdown>
+              <ReactMarkdown remarkPlugins={[remarkGfm]}>{unwrapMarkdownCodeFence(report.reportMarkdown)}</ReactMarkdown>
             </div>
           </>
         ) : (
