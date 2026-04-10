@@ -10,17 +10,22 @@ It is the **single source of truth** for how all tasks must be executed.
 
 ## Hard Rules
 
-Before making any code changes, you MUST:
+Before making repository changes, you MUST:
 
 1. Read `AI_WORKFLOW.md`
-2. Create:
+2. Define a lowercase kebab-case feature name
+3. Work in:
+   - `feature/<feature-name>` or `fix/<feature-name>` branch
+   - or a dedicated worktree for that branch
+4. Create:
    - `docs/<feature-name>/spec.md`
    - `docs/<feature-name>/tasks.md`
-3. Work in:
-   - `feature/<feature-name>` branch or worktree
-4. Execute tasks from `tasks.md`
-5. Run tests before completion
-6. Prepare PR with references to spec and tasks
+5. Execute tasks from `tasks.md` and keep task status updated
+6. Run validation appropriate to the change type before completion
+7. If work is handed off or paused with meaningful state, create/update:
+   - `docs/<feature-name>/handoff.md`
+   - using `docs/templates/HANDOFF.md`
+8. Prepare PR with references to `spec.md` and `tasks.md`
 
 ---
 
@@ -29,7 +34,7 @@ Before making any code changes, you MUST:
 - Coding without spec.md
 - Skipping tasks.md
 - Editing main branch directly
-- Ignoring failing tests
+- Ignoring failing required validation
 
 ---
 

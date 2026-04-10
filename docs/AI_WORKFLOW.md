@@ -6,214 +6,228 @@ This document defines the canonical workflow for all AI agents working in this r
 
 # 0. Core Principles
 
-1. Design before code
-2. Isolation by default
-3. Tests are mandatory
-4. Small, reviewable changes
-5. All intermediate artifacts MUST be persisted
+1. Repository artifacts over chat memory
+2. Design before implementation
+3. Isolate work before editing repository files
+4. Validate every change before completion
+5. Keep changes small, reviewable, and resumable
 
 ---
 
 # 1. Workflow Overview
 
-1. Requirement Understanding
-2. Design (Spec) → saved to docs
-3. Task Breakdown → saved to docs
-4. Worktree / Branch Setup
-5. Implementation
-6. Testing & Validation
-7. Self Review
-8. PR Preparation
+1. Understand
+2. Isolate
+3. Spec
+4. Tasks
+5. Implement
+6. Validate
+7. Review
+8. Handoff and PR
 
 ---
 
-# 2. Feature Naming (MANDATORY)
+# 2. Naming and Paths
 
-Before creating spec, define a feature name:
-
-## Rules
-- lowercase
-- kebab-case
-- short but descriptive
-
-## Examples
-- user-auth-refactor
-- add-payment-api
-- fix-login-bug
-
-## Usage
-All artifacts MUST be placed under:
-
-docs/<feature-name>/
+- **Feature name**: lowercase kebab-case, for example `user-auth-refactor`
+- **Branch/worktree**: `feature/<feature-name>` for features, `fix/<feature-name>` for fixes
+- **Feature docs**: `docs/<feature-name>/`
+- **Spec**: `docs/<feature-name>/spec.md`
+- **Tasks**: `docs/<feature-name>/tasks.md`
+- **Optional handoff file**: `docs/<feature-name>/handoff.md`
+- **Handoff template**: `docs/templates/HANDOFF.md`
+- **Skill index**: `.agents/skills/README.md`
 
 ---
 
-# 3. Requirement Understanding
+# 3. Understand (MANDATORY)
 
-## Output
-- problem summary
-- expected outcome
-- constraints
+Before editing repository files:
 
-DO NOT start coding
+1. Capture the problem, desired outcome, and constraints.
+2. Ask clarifying questions only when the answer changes scope, behavior, or implementation.
+3. If the request is already clear, restate the agreed scope and continue.
 
----
-
-# 4. Design (Spec)
-
-## File Location (MANDATORY)
-
-docs/<feature-name>/spec.md
-
-## Format
-
-### Context
-### Goals
-### Non-goals
-### Approach
-### Impact
-### Risks
-### Test Plan
-
-## Rules
-
-- MUST create spec.md BEFORE implementation
-- MUST write to file (not just chat)
-- If spec changes → update file
+**Do not start implementation before scope is understood.**
 
 ---
 
-# 5. Task Breakdown
+# 4. Isolate
 
-## File Location (MANDATORY)
+As soon as the feature name is known:
 
-docs/<feature-name>/tasks.md
-
-## Format
-
-- Ordered checklist
-
-Example:
-
-- [ ] create API endpoint
-- [ ] implement validation
-- [ ] write unit tests
-- [ ] update docs
-
-## Rules
-
-- MUST derive from spec
-- MUST be actionable
-- MUST be persisted to file
+1. Create or switch to `feature/<feature-name>` or `fix/<feature-name>`.
+2. Use a dedicated worktree if that is the safer isolation boundary.
+3. Never edit `main` directly.
+4. Do not revert unrelated changes already present in the worktree.
+5. If concurrent changes conflict with the task, stop and resolve the conflict before continuing.
 
 ---
 
-# 6. Worktree / Branch Setup
+# 5. Design (Spec)
 
-## Rules
+Create `docs/<feature-name>/spec.md` before implementation.
 
-- MUST create isolated environment
+Every spec must contain these sections in order:
 
-branch name:
-feature/<feature-name>
+1. Context
+2. Goals
+3. Non-goals
+4. Approach
+5. Impact
+6. Risks
+7. Test Plan
 
-OR
+Spec rules:
 
-use git worktree:
-<feature-name>
+- Keep it concise but explicit.
+- Document coupling points from `AGENTS.md` in the Impact section.
+- Define validation expectations in the Test Plan.
+- Update the spec if the scope changes.
+- Docs-only or process-only changes still require a spec, but it can be brief.
+
+---
+
+# 6. Task Breakdown
+
+Create `docs/<feature-name>/tasks.md` from the spec before implementation.
+
+Task rules:
+
+- Use an ordered checklist.
+- Make tasks small, actionable, and testable.
+- Include acceptance criteria when the task is not self-evident.
+- Include validation and self-review tasks.
+- Update progress as work happens: `[ ]`, `[x]`, or explicitly mark blocked items.
 
 ---
 
 # 7. Implementation
 
-## Rules
+Implementation rules:
 
-- Follow spec.md strictly
-- Execute tasks.md sequentially
-- Update tasks.md:
-  - mark completed tasks
-
-Example:
-
-- [x] create API endpoint
+- Execute tasks in order unless the task list explicitly says otherwise.
+- Prefer the smallest correct change.
+- Keep docs, code, and tests aligned with the spec.
+- Do not silently skip required steps.
+- If blocked, document the blocker in `tasks.md` and `handoff.md` when needed.
 
 ---
 
-# 8. Testing & Validation
+# 8. Validation
 
-## Required
+Validation is mandatory, but the exact checks depend on the change type.
 
-- run tests
-- run lint
-- run build (if applicable)
+For application code changes:
 
-## Rules
+- Unit tests for changed code with a target of `>80%` coverage for changed code paths
+- Integration tests for API, database, auth, or external integration changes
+- Lint with no errors
+- Build must pass
+- E2E or manual flow validation for user-facing behavior changes
 
-- ALL must pass
-- if fail → fix before continuing
+For docs-only or workflow-only changes:
+
+- Verify referenced files and paths exist
+- Review cross-document consistency
+- Run `git diff --check`
+- Run docs-specific linting only if the repository provides it
+
+Validation rules:
+
+- Coverage targets apply to changed code, not pure documentation files.
+- If any required validation fails, stop, fix the issue, and rerun validation.
+- Do not proceed to completion while known required validation is failing.
 
 ---
 
 # 9. Self Review
 
-## Checklist
+Before considering the task complete:
 
-- spec matches implementation
-- tasks completed
-- no unrelated changes
-- edge cases handled
+- Spec matches the implemented scope
+- Tasks are up to date
+- Coupled components or documents were updated together
+- Validation appropriate to the change type passed
+- No unrelated changes were introduced
+- Remaining risks or follow-up work are documented
 
----
-
-# 10. PR Preparation
-
-## MUST reference docs
-
-PR must include:
-
-- link to:
-  - spec.md
-  - tasks.md
-
-## Required content
-
-### Summary
-### Changes
-### Testing
-### Risks
-### Rollback
+Use the `review-checklist` skill if available, or follow the equivalent checklist manually.
 
 ---
 
-# 11. Failure Handling
+# 10. Context Management and Handoff
 
-If any step fails:
+Repository files are the source of truth for state transfer.
 
-- STOP
-- FIX
-- CONTINUE
+Use `docs/<feature-name>/handoff.md` when:
+
+- work spans multiple sessions
+- work is being transferred between agents
+- blockers or partial validation need to be preserved
+
+Handoff rules:
+
+- Start from `docs/templates/HANDOFF.md`.
+- Record current status, completed work, remaining tasks, blockers, validation, and the next recommended step.
+- Keep the handoff file updated only while the task is active; remove or archive it when no longer needed.
+
+Optional tooling:
+
+- Use subagents or skill-loading features when the host environment supports them.
+- If the host does not support those features, execute the same workflow manually using the repository docs.
+
+---
+
+# 11. PR Preparation
+
+When preparing a PR, include:
+
+- Summary of what changed and why
+- Links to `spec.md` and `tasks.md`
+- Link to `handoff.md` if it remains relevant to reviewers
+- Validation performed
+- Risks, rollout notes, or follow-up items
 
 ---
 
-# 12. Forbidden Actions
+# 12. Failure Handling
 
-- skipping spec.md
-- skipping tasks.md
-- coding without docs
-- not updating tasks status
-- editing main branch
-- ignoring failing tests
+If any required step fails:
+
+1. Stop subsequent steps.
+2. Fix the failure or document the blocker.
+3. Re-run the affected validation.
+4. Continue only after the workflow is back in a valid state.
+
+---
+
+# 13. Forbidden
+
+- Skip `spec.md` or `tasks.md`
+- Edit `main` directly
+- Ignore failing required validation
+- Reference missing templates or workflow artifacts
+- Leave coupled changes undocumented
+- Mix unrelated work into the same task without documenting it
 
 ---
 
-# 13. Completion Criteria
+# 14. Completion Criteria
 
-A task is complete ONLY IF:
+A task is complete only when:
 
-- spec.md exists
-- tasks.md exists
-- tasks marked done
-- tests pass
-- PR ready with doc links
+- `spec.md` and `tasks.md` exist and match the final scope
+- Tasks are marked complete, or blocked/cancelled with an explanation
+- Validation appropriate to the change type has passed
+- Handoff state is either updated or not needed
+- PR-ready summary information exists with links to workflow docs
 
 ---
+
+# 15. References
+
+- [AGENTS.md](../AGENTS.md) - Repository-specific constraints and couplings
+- [STYLE_GUIDE.md](./STYLE_GUIDE.md) - Code and implementation standards
+- [HANDOFF.md template](./templates/HANDOFF.md) - State transfer template
+- [Skills README](../.agents/skills/README.md) - Optional workflow guidance

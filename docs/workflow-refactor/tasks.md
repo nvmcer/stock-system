@@ -1,0 +1,9 @@
+- [x] create feature branch `feature/workflow-refactor`
+- [x] write `docs/workflow-refactor/spec.md` with workflow goals, approach, impact, risks, and validation plan
+- [x] write `docs/workflow-refactor/tasks.md` and keep progress updated during implementation
+- [x] rewrite `docs/AI_WORKFLOW.md` into a self-contained, executable workflow
+- [x] add missing reusable handoff template and skill index documentation
+- [x] align `AGENTS.md` with the rewritten canonical workflow where needed
+- [x] clean duplicated or conflicting guidance in `.agents/skills/` documents
+- [x] validate cross-references and run docs-focused checks
+- [x] self-review for spec/tasks alignment and no unrelated changes
